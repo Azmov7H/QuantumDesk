@@ -9,7 +9,7 @@ const freckle = Source_Code_Pro({
 
 export default function Logo() {
   return (
-    <div className={`${freckle.className} w-max text-2xl text-black `}>
+    <div className={`${freckle.className} w-max text-2xl text-white `}>
       QuantumLeap
     </div>
   );
