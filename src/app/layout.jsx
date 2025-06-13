@@ -12,10 +12,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={` antialiased`}
+        className={` antialiased bg-[#172633] text-white font-mono`}
       >
         <Navbar />
-        {children}
+        <main className="p-2 mt-4 ">
+          {children}
+        </main>
       </body>
     </html>
   );
