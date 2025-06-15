@@ -1,6 +1,7 @@
 import Empowering from "./components/Empowering";
 import Featured from "./components/Featured";
 import Hero from "./components/Hero";
+import Saying from "./components/Saying";
 
 
 
@@ -11,6 +12,7 @@ export default function page() {
       <Hero />
       <Empowering />
       <Featured />
+      <Saying />
     </div>
   )
 }
