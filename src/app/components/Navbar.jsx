@@ -17,7 +17,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className="shadow-sm shadow-accent px-4 py-3 flex items-center justify-between relative">
+    <nav className=" px-4 py-3 flex items-center justify-between relative">
       {/* Logo */}
       <div className="logo">
         <Logo />
@@ -44,13 +44,13 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {open && (
-        <div className="absolute top-full left-0 w-full bg-white shadow-md flex flex-col items-start gap-4 p-4 md:hidden z-10">
+        <div className="absolute top-full left-0 w-full bg-[#172633] shadow-md flex flex-col items-start gap-4 p-4 md:hidden z-10">
           {Links.map((link) => (
             <Link key={link.id} href={link.href} onClick={() => setOpen(false)} className="text-lg hover:text-blue-600 transition">
               {link.title}
             </Link>
           ))}
-          <Button className="bg-[#1A8CE5] text-white w-4/5" variant="ghost" onClick={() => setOpen(false)}>
+          <Button className="bg-[#1A8CE5] text-white w-full md:w-4/5" variant="ghost" onClick={() => setOpen(false)}>
             <Link href="/auth/login">Get Started</Link>
           </Button>
         </div>
