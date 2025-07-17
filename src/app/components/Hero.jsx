@@ -7,13 +7,13 @@ import React from "react"
 
 export default function Hero() {
   return (
-    <Card className="w-full h-96 md-[512px] py-10 px-4 md:px-16 bg-[url('/bg.png')] bg-cover bg-center">
+    <Card className="w-full md-[512px] py-14 px-4 md:px-16 bg-[url('/bg.png')] bg-cover bg-center my-12 h-[850px] flex items-center justify-center">
       <section className="gap-8 p-6 md:p-10  border-none   bg-transparent">
-        <div className="flex flex-col gap-2 md:gap-4 items-center text-center">
-          <CardTitle className="text-3xl md:text-5xl font-bold text-white">
+        <div className="flex flex-col gap-2 md:gap-4 items-center justify-center text-center">
+          <CardTitle className="text-3xl md:text-5xl font-bold text-white mb-6">
             Accelerating Scientific Discovery
           </CardTitle>
-          <CardDescription className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
+          <CardDescription className="text-muted-foreground text-lg leading-relaxed max-w-2xl mb-8">
             QuantumLeap is a collaborative platform for researchers to publish, explore, and connect with peers in their field.
           </CardDescription>
 
