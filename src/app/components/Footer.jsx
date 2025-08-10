@@ -4,7 +4,7 @@ import React from 'react'
 export default function Footer() {
   return (
     <>
-    <div className='text-[#8FADCC] h-[152px] py-8 mt-26 w-[80%] mx-auto'>
+    <div className='text-[#8FADCC] h-[152px] py-8 mt-26 w-[40%] mx-auto'>
         <ul className='flex justify-between mb-16'>
             <li> <Link href='/'>About </Link> </li>
             <li> <Link href='/'>Contact </Link> </li>
