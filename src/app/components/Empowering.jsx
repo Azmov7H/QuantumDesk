@@ -23,7 +23,7 @@ export default function Empowering() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full mb-20">
       <div className="title flex flex-col items-start gap-3">
         <h2 className="text-3xl text-white font-semibold">Empowering Researchers</h2>
         <p className="text-white/80">

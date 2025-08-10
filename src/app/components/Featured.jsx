@@ -7,22 +7,22 @@ export default function Featured() {
     {
       title: "Quantum Entanglement in Complex Systems",
       author: "Dr. Anya Sharma",
-      image: "https://images.unsplash.com/photo-1726066012678-211c2e2d4fa7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      image: "3 (1).svg",
     },
     {
       title: "Exploring Dark Matter Structures",
       author: "Dr. Isaac Kim",
-      image: "https://images.unsplash.com/photo-1733509213080-db2aca1bc244?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      image: "3 (2).svg",
     },
     {
       title: "Advancements in Quantum Computing",
       author: "Dr. Laila Khan",
-      image: "https://images.unsplash.com/photo-1749745171171-08e9c3638b0c?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      image: "3 (3).svg",
     },
   ]
 
   return (
-    <div className='flex w-full flex-col items-start gap-6'>
+    <div className='flex w-full flex-col items-start gap-6 mb-20'>
       <h2 className="text-3xl text-white font-semibold">Featured Articles</h2>
 
       <section className='grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>

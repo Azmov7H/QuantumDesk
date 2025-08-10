@@ -17,14 +17,14 @@ export default function Navbar() {
   const [open, setOpen] = useState(false)
 
   return (
-    <nav className=" px-4 py-3 flex items-center justify-between relative">
+    <nav className=" px-4 py-5 flex items-center justify-between relative w-[80%] mx-auto">
       {/* Logo */}
       <div className="logo">
         <Logo />
       </div>
 
       {/* Desktop Links */}
-      <div className="hidden md:flex items-center gap-6">
+      <div className="hidden md:flex items-center gap-6 py-5">
         {Links.map((link) => (
           <Link key={link.id} href={link.href} className="hover:text-blue-600 transition">
             {link.title}

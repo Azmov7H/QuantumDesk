@@ -23,19 +23,19 @@ export default function Saying() {
             name: "Dr. Anya Sharma",
             field: "Physics",
             quote: "QuantumLeap has revolutionized the way I share my research. The platform is intuitive and the community is incredibly supportive.",
-            image: "https://randomuser.me/api/portraits/women/44.jpg",
+            image: "S1.svg",
         },
         {
             name: "Dr. Isaac Kim",
             field: "Astrophysics",
             quote: "Finally, a place where science and technology meet. QuantumLeap helps me connect with peers like never before.",
-            image: "https://randomuser.me/api/portraits/men/32.jpg",
+            image: "S2.svg",
         },
         {
             name: "Dr. Laila Khan",
             field: "Quantum Computing",
             quote: "The UI is stunning and the publishing experience is smooth. Highly recommended for serious researchers.",
-            image: "https://randomuser.me/api/portraits/women/65.jpg",
+            image: "S3.svg",
         },
     ]
 
@@ -52,7 +52,7 @@ export default function Saying() {
                     {testimonials.map((testimonial, idx) => (
                         <Card
                             key={idx}
-                            className="snap-start min-w-[90%] sm:min-w-[300px] bg-white/10 backdrop-blur-md text-white p-4 rounded-xl"
+                            className="snap-start min-w-[90%] sm:min-w-[300px] bg-white/10 backdrop-blur-md !border-0 text-white p-4 "
                         >
                             <div className="flex flex-col items-center gap-4 mb-4">
                                 <Avatar className="md:h-[288px] md:w-[288px] rounded-xl overflow-hidden">

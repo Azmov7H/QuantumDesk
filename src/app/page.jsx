@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import Empowering from "./components/Empowering";
 import Featured from "./components/Featured";
 import Hero from "./components/Hero";
@@ -13,6 +14,8 @@ export default function page() {
       <Empowering />
       <Featured />
       <Saying />
+      <p>Join the QuantumLeap Community</p>
+      <Button>Join Now</Button>
     </div>
   )
 }
