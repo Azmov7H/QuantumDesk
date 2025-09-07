@@ -56,7 +56,7 @@ export default function Saying() {
                         >
                             <div className="flex flex-col items-center gap-4 mb-4">
                                 <Avatar className="md:h-[288px] md:w-[288px] rounded-xl overflow-hidden">
-                                    <AvatarImage src={testimonial.image} className="md:h-full md:w-full md:rounded-full object-cover" />
+                                    <AvatarImage src={testimonial.image} className="md:h-full md:w-full md:rounded-full object-cover" loading="lazy" />
                                     <AvatarFallback className="text-4xl">
                                         {testimonial.name.split(" ")[1]?.[0] ?? ''}{testimonial.name.split(" ")[0]?.[0]}
                                     </AvatarFallback>
@@ -85,7 +85,7 @@ export default function Saying() {
                     >
                         <div className="flex flex-col items-center gap-4 mb-4">
                             <Avatar className="h-[288px] w-[288px] rounded-xl overflow-hidden">
-                                <AvatarImage src={testimonial.image} className="h-full w-full object-cover" />
+                                <AvatarImage src={testimonial.image} className="h-full w-full object-cover" loading="lazy" />
                                 <AvatarFallback className="text-4xl">
                                     {testimonial.name.split(" ")[1][0]}{testimonial.name.split(" ")[0][0]}
                                 </AvatarFallback>

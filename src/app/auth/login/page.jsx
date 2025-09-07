@@ -1,10 +1,12 @@
 "use client"
+
 import Link from "next/link"
 import { useState } from "react"
 import { loginUser } from "@/lib/api"
 import { Button } from "@/components/ui/button"
+import ElectricBorder from "@/components/ElectricBorder"
 import {
-  Card, CardAction, CardContent, CardDescription,
+  Card, CardContent, CardDescription,
   CardFooter, CardHeader, CardTitle
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -37,70 +39,78 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex w-full items-center justify-center">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-          <CardAction>
-            <Button variant="link">
-                <Link href="/auth/regstrtion">Sign Up</Link>
-            </Button>
-          </CardAction>
-        </CardHeader>
-
-        <form onSubmit={handleSubmit}>
-          <CardContent>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <ElectricBorder
+        className="flex items-center justify-center w-full max-w-md p-2"
+        color="#7df9ff"
+        speed={1}
+        chaos={0.5}
+        thickness={2}
+        style={{ borderRadius: 16 }}
+      >
+        <Card className="w-full !bg-none !border-none">
+          <CardHeader>
+            <CardTitle>Login to your account</CardTitle>
+            <CardDescription>
+              Enter your email below to login to your account
+            </CardDescription>
+            <div className="mt-2">
+              <Button variant="link" asChild>
+                <Link href="/auth/registration">Sign Up</Link>
+              </Button>
             </div>
-          </CardContent>
+          </CardHeader>
 
-          <CardFooter className="flex-col gap-2">
-            <Button
-              variant="ghost"
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#1A8CE5] text-white"
-            >
-              {loading ? "Logging in..." : "Login"}
-            </Button>
-            <Button variant="ghost" className="w-full">
-              Login with Google
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+          <form onSubmit={handleSubmit}>
+            <CardContent>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <a
+                      href="#"
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    >
+                      Forgot your password?
+                    </a>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex-col gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#1A8CE5] text-white hover:bg-[#1573be]"
+              >
+                {loading ? "Logging in..." : "Login"}
+              </Button>
+              <Button variant="outline" className="w-full">
+                Login with Google
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      </ElectricBorder>
     </div>
   )
 }
