@@ -37,7 +37,7 @@ export default function Featured() {
               height={200}
               alt={article.title}
               className="w-full h-48 object-cover"
-              loading='eager'
+              loading='lazy'
             />
             <CardHeader>
               <CardTitle className="text-lg">{article.title}</CardTitle>

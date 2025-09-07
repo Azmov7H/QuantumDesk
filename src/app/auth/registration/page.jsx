@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import ElectricBorder from "@/components/ElectricBorder"
 
 export default function RegisterPage() {
   const [username, setName] = useState("")
@@ -36,7 +37,14 @@ export default function RegisterPage() {
 
   return (
     <div className="flex w-full min-h-screen items-center justify-center">
-      <Card className="w-full max-w-sm">
+      <ElectricBorder
+              className="flex items-center justify-center w-full max-w-md p-2"
+        color="#7df9ff"
+        speed={1}
+        chaos={0.5}
+        thickness={2}
+        style={{ borderRadius: 16 }}>
+      <Card className="w-full max-w-sm !bg-none">
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
           <CardDescription>Enter your details below to register</CardDescription>
@@ -87,7 +95,7 @@ export default function RegisterPage() {
             <Button
               variant="link"
               type="button"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/auth/login")}
               className="w-full"
             >
               Already have an account? Login
@@ -95,6 +103,7 @@ export default function RegisterPage() {
           </CardFooter>
         </form>
       </Card>
+      </ElectricBorder>
     </div>
   )
 }
