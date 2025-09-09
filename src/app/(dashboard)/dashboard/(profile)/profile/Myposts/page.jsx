@@ -1,5 +1,5 @@
 "use client"
-
+import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
 const samplePosts = [
@@ -46,9 +46,9 @@ export default function MyPosts() {
           <p className="text-white text-[32px] font-bold leading-tight">
             My Posts
           </p>
-          <button className="rounded-xl h-8 px-4 bg-[#223649] text-white text-sm font-medium">
+          <Button className="rounded-xl h-8 px-4 bg-[#223649] text-white text-sm font-medium">
             + New Post
-          </button>
+          </Button>
         </div>
 
         {/* Filters */}

@@ -1,5 +1,8 @@
 "use client"
+import Image from "next/image"
 import Link from "next/link"
+import { IoIosNotifications } from "react-icons/io";
+
 
 export default function Navbar() {
   return (
@@ -40,9 +43,14 @@ export default function Navbar() {
         </label>
 
         {/* Notification */}
-        <button className="rounded-xl h-10 bg-[#223649] text-white px-3">
-          🔔
+        <button className="rounded-xl h-10 bg-[#223649] text-white px-3 relative">
+           <IoIosNotifications className="text-yellow-400 text-2xl" />
+           <span className="absolute top-0 right-2.5 text-white">0</span>
         </button>
+
+<Link href="/dashboard/profile" className="rounded-full h-10  px-3">
+          <Image src="/dr4.png" width={40} height={40} alt="user img" className="rounded-full" />
+        </Link>
 
         {/* User Avatar */}
         <div

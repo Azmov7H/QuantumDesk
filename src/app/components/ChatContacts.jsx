@@ -1,5 +1,6 @@
 'use client'
 import Image from 'next/image';
+import Link from 'next/link';
 import React, { useState } from 'react'
 
 export default function ChatContacts() {
@@ -35,14 +36,14 @@ const [contacts, setContacts] = useState(doctors);
   return (
     <>
     {contacts? contacts.map((contact)=>{
-     return    <div className='flex items-center gap-4 mb-8' key={contact.name}>
+     return    <Link href='/' className='flex items-center gap-4 mb-8' key={contact.name}>
             <Image src={contact.avatar} width={50} height={50} className='rounded-full' alt='Dr img' />
             <div>
                 <h3 className='text-white'>{contact.name}</h3>
                 <p className='text-[#AD91C9]'>{contact.lastName}</p>
                 <p className='text-[#AD91C9]'>{contact.message}</p>
             </div>
-        </div>
+        </Link>
     }):(
         <p>Loadin...</p>
     )}
