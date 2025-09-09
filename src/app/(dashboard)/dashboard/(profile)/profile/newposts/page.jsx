@@ -17,8 +17,8 @@ import {
 export default function Newposts() {
   return (
     <>
-      <form className="flex text-white p-8 gap-12">
-        <div className="w-1/2">
+      <form className="sm:flex-col md:flex-row flex text-white p-8 gap-12">
+        <div className="sm:w-full lg:w-1/2">
           <label className="pl-3 " htmlFor="title">
             Title
           </label>
@@ -37,18 +37,18 @@ export default function Newposts() {
             rows={5}
             name="abstract"
             id="abstract"
-            defaultValue="Write abstract..."
+           placeholder="Write abstract..."
           />
 
           <ul className="mb-4 flex gap-8 ">
             <li>
-              <Link href="/">Facts</Link>
+              <Link href="/" className="relative before:content-[''] before:absolute before:w-0 hover:before:h-[2px] hover:before:bottom-[-2px] before:transition-all before:transition-200 hover:before:left-0 hover:before:bg-white hover:before:w-full">Facts</Link>
             </li>
             <li>
-              <Link href="/">Theories</Link>
+              <Link href="/"  className="relative before:content-[''] before:absolute before:w-0 hover:before:h-[2px] hover:before:bottom-[-2px] before:transition-all before:transition-200 hover:before:left-0 hover:before:bg-white hover:before:w-full">Theories</Link>
             </li>
             <li>
-              <Link href="/">References</Link>
+              <Link href="/"  className="relative before:content-[''] before:absolute before:w-0 hover:before:h-[2px] hover:before:bottom-[-2px] before:transition-all before:transition-200 hover:before:left-0 hover:before:bg-white hover:before:w-full">References</Link>
             </li>
           </ul>
 
@@ -70,13 +70,13 @@ export default function Newposts() {
             className="border-2 border-[#172633] w-full rounded-md p-3 resize-none mb-4 "
             name="review"
             id=""
-            defaultValue="review"
+            placeholder="review"
             rows={8}
           />
           <Button className="bg-[#0A80F5]">Submit for Review</Button>
         </div>
 
-        <div className="w-1/4">
+        <div className="sm:w-full lg:w-1/4">
           <label htmlFor="tages">Tags</label>
           <br />
           <Input placeholder="add tages" className="border-[#172633] mt-4" />
@@ -91,9 +91,9 @@ export default function Newposts() {
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="facts">Facts</SelectItem>
+              <SelectItem value="theories">Theories</SelectItem>
+              <SelectItem value="references">References</SelectItem>
             </SelectContent>
           </Select>
           <br />
