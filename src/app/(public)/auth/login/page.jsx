@@ -21,22 +21,29 @@ export default function LoginPage() {
 
   const router = useRouter()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+ const handleSubmit = async (e) => {
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      const data = await loginUser({ email, password })
-      const { token } = data
-      localStorage.setItem("token", token)
-      toast.success("Login successful")
-      router.push("/dashboard")
-    } catch (err) {
-      toast.error(err.message || "Login failed")
-    } finally {
-      setLoading(false)
+  try {
+    const data = await loginUser({ email, password })
+
+    if (!data?.token) {
+      throw new Error("Token not found in response")
     }
+
+    localStorage.setItem("token", data.token)
+    toast.success("Login successful")
+
+    router.push("/dashboard")
+  } catch (err) {
+    console.error("Login error:", err)
+    toast.error(err?.response?.data?.message || err.message || "Login failed")
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className="flex min-h-screen items-center justify-center">

@@ -1,125 +1,184 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import React from "react";
-import { IoIosCopy } from "react-icons/io";
-import { BiSolidSave } from "react-icons/bi";
-import { GiMeshBall } from "react-icons/gi";
-import { SlGlobe } from "react-icons/sl";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { toast } from "sonner";
 
-export default function Newposts() {
+export default function PostForm({ editPost, onSuccess }) {
+  const [title, setTitle] = useState(editPost?.title || "");
+  const [abstract, setAbstract] = useState(editPost?.summary || "");
+  const [review, setReview] = useState(editPost?.content || "");
+  const [image, setImage] = useState(editPost?.image || null);
+  const [preview, setPreview] = useState(editPost?.image || null);
+  const [loading, setLoading] = useState(false);
+
+  // Update form state if editPost changes
+  useEffect(() => {
+    if (editPost) {
+      setTitle(editPost.title || "");
+      setAbstract(editPost.summary || "");
+      setReview(editPost.content || "");
+      setImage(editPost.image || null);
+      setPreview(editPost.image || null);
+    }
+  }, [editPost]);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPreview(URL.createObjectURL(file));
+    setImage(file); // نحفظ الملف لرفعه لاحقًا
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("You must login first");
+
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("summary", abstract);
+      formData.append("content", review);
+      if (image && image instanceof File) formData.append("image", image);
+
+      const url = editPost
+        ? `${process.env.NEXT_PUBLIC_URL_API}/posts/${editPost._id}`
+        : `${process.env.NEXT_PUBLIC_URL_API}/posts`;
+      const method = editPost ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        
+        const errData = await res.json();
+       
+        throw new Error(errData.msg || "Failed to submit post");
+      }
+
+      const data = await res.json();
+      toast.success(editPost ? "Post updated!" : "Post created!");
+      if (onSuccess) onSuccess(data);
+
+      if (!editPost) {
+        setTitle("");
+        setAbstract("");
+        setReview("");
+        setImage(null);
+        setPreview(null);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error submitting post");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!editPost) return;
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/posts/${editPost._id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.msg || "Failed to delete post");
+      }
+
+      toast.success("Post deleted!");
+      if (onSuccess) onSuccess(null); // نخبر المكون الأب أن المنشور حذف
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error deleting post");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <>
-      <form className="flex text-white p-8 gap-12">
-        <div className="w-1/2">
-          <label className="pl-3 " htmlFor="title">
-            Title
-          </label>
-          <br />
-          <Input
-            id="title"
-            name="title"
-            className="w-1/2 border-[#172633] mb-6"
-          />
-          <label className="pl-3 " htmlFor="abstract">
-            Abstract
-          </label>
-          <br />
-          <textarea
-            className="border-2 border-[#172633] w-1/2 rounded-md p-3 resize-none mb-8 "
-            rows={5}
-            name="abstract"
-            id="abstract"
-            defaultValue="Write abstract..."
-          />
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col md:flex-row gap-8 p-6 text-white"
+    >
+      {/* Form Fields */}
+      <div className="flex-1">
+        <label className="block mb-2">Title</label>
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter post title"
+          className="w-full mb-6"
+          required
+        />
 
-          <ul className="mb-4 flex gap-8 ">
-            <li>
-              <Link href="/">Facts</Link>
-            </li>
-            <li>
-              <Link href="/">Theories</Link>
-            </li>
-            <li>
-              <Link href="/">References</Link>
-            </li>
-          </ul>
+        <label className="block mb-2">Abstract</label>
+        <textarea
+          value={abstract}
+          onChange={(e) => setAbstract(e.target.value)}
+          rows={4}
+          placeholder="Short summary..."
+          className="w-full mb-6 rounded-md p-3 resize-none"
+          required
+        />
 
-          <hr className="text-[#172633]" />
+        <label className="block mb-2">Content</label>
+        <textarea
+          value={review}
+          onChange={(e) => setReview(e.target.value)}
+          rows={8}
+          placeholder="Full content..."
+          className="w-full mb-6 rounded-md p-3 resize-none"
+          required
+        />
 
-          <div className="flex justify-between items-center my-6">
-            <div className="flex gap-4 items-center">
-              <IoIosCopy className="text-2xl " />
-              <BiSolidSave className="text-2xl " />
-              <GiMeshBall className="text-2xl " />
-            </div>
-            <Button className="bg-[#0A80F5]">
-              <SlGlobe />
-              <span>Public</span>
+        <div className="flex gap-4">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="bg-[#0A80F5] w-full md:w-auto"
+          >
+            {loading ? "Submitting..." : editPost ? "Update Post" : "Submit for Review"}
+          </Button>
+
+          {editPost && (
+            <Button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="bg-red-600 w-full md:w-auto"
+            >
+              {loading ? "Deleting..." : "Delete"}
             </Button>
-          </div>
+          )}
+        </div>
+      </div>
 
-          <textarea
-            className="border-2 border-[#172633] w-full rounded-md p-3 resize-none mb-4 "
-            name="review"
-            id=""
-            defaultValue="review"
-            rows={8}
+      {/* Image Preview */}
+      <div className="md:w-1/3">
+        <label className="block mb-2">Feature Image</label>
+        <input type="file" onChange={handleImageChange} className="mb-2" />
+        {preview && (
+          <img
+            src={preview}
+            alt="Preview"
+            className="w-full h-48 object-cover rounded-md"
           />
-          <Button className="bg-[#0A80F5]">Submit for Review</Button>
-        </div>
-
-        <div className="w-1/4">
-          <label htmlFor="tages">Tags</label>
-          <br />
-          <Input placeholder="add tages" className="border-[#172633] mt-4" />
-          <br />
-
-          <label htmlFor="category">Category</label>
-          <br />
-          {/* <Input placeholder="Select Category " className="border-[#172633] mt-4" /> */}
-
-          <Select>
-            <SelectTrigger className="w-full border-[#172633]">
-              <SelectValue placeholder="Theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
-            </SelectContent>
-          </Select>
-          <br />
-
-          <label htmlFor="tages">Status</label>
-          <br />
-          <Input className="border-[#172633] mt-4" />
-          <br />
-          <label htmlFor="img">Feature Image</label>
-          <br />
-          <div className="relative">
-            <Input
-              type="file"
-              className="border-2 border-dashed border-[#172633] h-[230px] mt-6"
-            />
-            <div className="absolute flex flex-col justify-center items-center text-center top-[60px] left-[80px]">
-              <h3>Upload Image</h3>
-              <p className="mb-2 text-xs">Drag and drop or click to upload</p>
-              <Button className="bg-[#21364A]">Uplo...</Button>
-            </div>
-          </div>
-
-          <br />
-          <p>Saved 5 minutes ago.</p>
-        </div>
-      </form>
-    </>
+        )}
+      </div>
+    </form>
   );
 }
