@@ -1,6 +1,7 @@
 import { Toaster } from "sonner";
 import Navbar from "../components/Navbar";
 import "../globals.css";
+import Footer from "../components/Footer";
 
 export const metadata = {
   title: {
@@ -29,6 +30,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         <main className="p-2 mt-4 ">{children}</main>
         <Toaster richColors position="top-center" />
+        <Footer />
       </body>
     </html>
   );
