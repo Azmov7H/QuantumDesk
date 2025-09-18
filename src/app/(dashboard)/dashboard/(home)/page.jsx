@@ -13,58 +13,92 @@ export default function DashboardHome() {
   const [error, setError] = useState("");
   const [newComments, setNewComments] = useState({});
   const [commentsVisible, setCommentsVisible] = useState({});
+  const [commentUsers, setCommentUsers] = useState({}); // { userId: userData }
+  const [token, setToken] = useState(null);
+
   const router = useRouter();
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
+  // Initialize token
   useEffect(() => {
-    if (!token) {
+    const t = localStorage.getItem("token");
+    if (!t) {
       router.push("/auth/login");
-      return;
+    } else {
+      setToken(t);
     }
 
-    // جلب بيانات المستخدم
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem("token");
-          router.push("/auth/login");
-          return null;
-        }
-        if (!res.ok) throw new Error("Failed to load profile");
-        return res.json();
-      })
-      .then((data) => {
-        if (data) setProfile(data);
-      })
-      .catch((err) => {
-        console.error("Profile fetch error:", err);
-        setError("Something went wrong, please try again later.");
-      });
-
-    // جلب البوستات
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/posts`)
-      .then((res) => res.json())
-      .then((data) => setPosts(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-
-    // الترحيب لمرة واحدة
+    // Welcome banner
     const welcomeSeen = localStorage.getItem("welcomeSeen");
     if (!welcomeSeen) {
       setShowWelcome(true);
       localStorage.setItem("welcomeSeen", "true");
       setTimeout(() => setShowWelcome(false), 5000);
     }
-  }, [router, token]);
+  }, [router]);
 
-  if (loading) return <div className="text-gray-400">Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  // Fetch profile and posts
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchData = async () => {
+      try {
+        const [profileRes, postsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+             cache: "no-store",
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_URL_API}/posts`, {cache: "no-store"})
+
+        ]);
+
+        if (!profileRes.ok) {
+          localStorage.removeItem("token");
+          router.push("/auth/login");
+          return;
+        }
+
+        const profileData = await profileRes.json();
+        setProfile(profileData);
+
+        const postsData = await postsRes.json();
+        setPosts(postsData);
+
+        // Preload users for comments
+        const userIds = [...new Set(postsData.flatMap(p => p.comments?.map(c => c.user?._id)).filter(Boolean))];
+        await Promise.all(userIds.map(id => fetchUserById(id)));
+      } catch (err) {
+        console.error(err);
+        setError("Something went wrong, please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [token, router]);
+
+  // Fetch user by ID (for comments)
+  const fetchUserById = async (userId) => {
+    if (commentUsers[userId]) return commentUsers[userId];
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+         cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const user = await res.json();
+      setCommentUsers(prev => ({ ...prev, [userId]: user }));
+      return user;
+    } catch (err) {
+      console.error(err);
+      return { username: "Unknown", profileImage: "/default-avatar.png" };
+    }
+  };
 
   const handleCommentChange = (postId, value) => {
-    setNewComments({ ...newComments, [postId]: value });
+    setNewComments(prev => ({ ...prev, [postId]: value }));
   };
 
   const handleAddComment = async (postId) => {
@@ -79,10 +113,19 @@ export default function DashboardHome() {
         body: JSON.stringify({ content: newComments[postId] }),
       });
       const comment = await res.json();
-      // تحديث البوست بالتعليق الجديد
-      setPosts(posts.map(p => p._id === postId ? { ...p, comments: [...(p.comments || []), comment] } : p));
-      setNewComments({ ...newComments, [postId]: "" });
-      setCommentsVisible({ ...commentsVisible, [postId]: true }); // تظهر التعليقات تلقائياً
+
+      setPosts(prevPosts =>
+        prevPosts.map(p =>
+          p._id === postId ? { ...p, comments: [...(p.comments || []), comment] } : p
+        )
+      );
+
+      setNewComments(prev => ({ ...prev, [postId]: "" }));
+      setCommentsVisible(prev => ({ ...prev, [postId]: true }));
+
+      if (comment.user && !commentUsers[comment.user._id]) {
+        fetchUserById(comment.user._id);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -95,15 +138,20 @@ export default function DashboardHome() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const updatedLikes = await res.json();
-      setPosts(posts.map(p => p._id === postId ? { ...p, likes: updatedLikes } : p));
+      setPosts(prevPosts =>
+        prevPosts.map(p => (p._id === postId ? { ...p, likes: updatedLikes } : p))
+      );
     } catch (err) {
       console.error(err);
     }
   };
 
   const toggleCommentsVisibility = (postId) => {
-    setCommentsVisible({ ...commentsVisible, [postId]: !commentsVisible[postId] });
+    setCommentsVisible(prev => ({ ...prev, [postId]: !prev[postId] }));
   };
+
+  if (loading) return <div className="text-gray-400">Loading...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-8">
@@ -129,8 +177,10 @@ export default function DashboardHome() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map(post => (
-          <div key={post._id} className="bg-[#362447] rounded-lg p-4 shadow-lg text-white flex flex-col">
-            
+          <div
+            key={post._id}
+            className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg text-white flex flex-col hover:scale-105 transition-transform duration-300"
+          >
             {/* Author Info */}
             <div className="flex items-center gap-3 mb-4">
               <img
@@ -142,7 +192,13 @@ export default function DashboardHome() {
             </div>
 
             {/* Post Image */}
-            {post.image && <img src={post.image} alt={post.title || "Post image"} className="rounded-lg mb-4 w-full h-48 object-cover" />}
+            {post.image && (
+              <img
+                src={post.image}
+                alt={post.title || "Post image"}
+                className="rounded-lg mb-4 w-full h-48 object-cover"
+              />
+            )}
 
             {/* Title & Summary */}
             <h2 className="text-xl font-bold mb-2">{post.title || "Untitled"}</h2>
@@ -155,24 +211,31 @@ export default function DashboardHome() {
             </Button>
 
             {/* Toggle Comments */}
-            <Button className="mb-2 w-full" variant="secondary" onClick={() => toggleCommentsVisibility(post._id)}>
+            <Button
+              className="mb-2 w-full"
+              variant="secondary"
+              onClick={() => toggleCommentsVisibility(post._id)}
+            >
               {commentsVisible[post._id] ? "Hide Comments" : `Show Comments (${post.comments?.length || 0})`}
             </Button>
 
             {/* Comments */}
             {commentsVisible[post._id] && (
-              <div className="flex flex-col gap-2 mt-2">
-                {post.comments?.map((c, index) => (
-                  <div key={c._id || index} className="bg-[#4b3b63] p-2 rounded flex items-center gap-2">
-                    <img
-                      src={c.user?.profileImage || "/default-avatar.png"}
-                      alt={c.user?.username || "Unknown"}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                    <span className="font-bold">{c.user?.username || "Unknown"}:</span>
-                    <span>{c.content}</span>
-                  </div>
-                ))}
+              <div className="flex flex-col gap-2 mt-2 max-h-64 overflow-y-auto">
+                {post.comments?.map((c, index) => {
+                  const user = commentUsers[c.user?._id] || { username: "Unknown", profileImage: "/default-avatar.png" };
+                  return (
+                    <div key={c._id || index} className="bg-white/20 p-2 rounded flex items-center gap-2">
+                      <img
+                        src={user.profileImage}
+                        alt={user.username}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                      <span className="font-bold">{user.username}:</span>
+                      <span>{c.content}</span>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
