@@ -1,5 +1,5 @@
 import Sidebar from "@/components/dashboard/profiel-user/Sidebar"
-import "../../../../globals.css"
+import "../../../../../globals.css"
 export default function PrfofileLayout({ children }) {
     return (
         <html lang="en">

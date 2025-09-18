@@ -34,3 +34,39 @@ export async function registerUser({ username, email, password }) {
 
   return { token: data.token, user: data.user };
 }
+export async function getUser() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users`)
+  return res.json()
+}
+
+export async function updateUser(data: any) {
+  await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updatePassword(oldPass: any, newPass: any) {
+  await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPass, newPass }),
+  })
+}
+
+export async function updatePreferences(data: any) {
+  await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateNotifications(data) {
+  await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
