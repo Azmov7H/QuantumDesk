@@ -9,11 +9,14 @@ export default function SecuritySettingsPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+const handleChangePassword = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
+  try {
     const token = localStorage.getItem("token");
+    if (!token) throw new Error("Unauthorized");
+
     const formData = new FormData();
     formData.append("password", password);
 
@@ -27,12 +30,29 @@ export default function SecuritySettingsPage() {
     setLoading(false);
 
     if (res.ok) {
-      alert("✅ Password updated!");
       setPassword("");
+      toast({
+        title: "Password updated!",
+        description: "Your password has been changed successfully.",
+        variant: "success",
+      });
     } else {
-      alert("❌ " + data.msg);
+      toast({
+        title: "Error",
+        description: data.msg || "Something went wrong.",
+        variant: "destructive",
+      });
     }
-  };
+  } catch (err) {
+    setLoading(false);
+    toast({
+      title: "Error",
+      description: err.message || "Something went wrong.",
+      variant: "destructive",
+    });
+  }
+};
+
 
   return (
     <Card className="shadow-lg rounded-2xl">

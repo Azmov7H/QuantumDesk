@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-
 import DashboardHeader from "@/components/dashboard/profiel-user/DashboardHeader";
 import DashboardStats from "@/components/dashboard/profiel-user/DashboardStats";
 import RecentActivity from "@/components/dashboard/profiel-user/RecentActivity";
@@ -10,7 +9,6 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // بيانات إحصائيات مؤقتة (لحد ما تجيبها من API)
   const stats = [
     { label: "Projects", value: 12 },
     { label: "Tasks", value: 34 },
@@ -44,11 +42,11 @@ export default function DashboardPage() {
       });
   }, []);
 
-  if (loading) return <div className="text-gray-400">Loading...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (loading) return <div className="text-gray-400 p-6">Loading...</div>;
+  if (error) return <div className="text-red-500 p-6">{error}</div>;
 
   return (
-    <div className="flex flex-col flex-1 bg-[#101a23] p-6">
+    <div className="flex flex-col gap-6 bg-[#101a23]">
       <DashboardHeader user={profile?.username ?? "Guest"} />
       <DashboardStats stats={stats} />
       <RecentActivity />
