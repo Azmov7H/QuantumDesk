@@ -1,12 +1,15 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
 export default function Navbar() {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,46 +35,44 @@ export default function Navbar() {
   if (!profile) return <div className="text-gray-400">Loading...</div>;
 
   return (
-    <header className="flex items-center justify-between border-b border-[#223649] px-10 py-3">
+    <header className="flex items-center justify-between border-b border-[#223649] px-6 py-3 text-white">
       {/* Left side */}
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-6">
         {/* Logo */}
-        <div className="flex items-center gap-4 text-white">
-          <div className="size-4">
-            <svg viewBox="0 0 48 48" fill="none">
-              <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-bold">QuantumLeap</h2>
-        </div>
+        <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+          <svg viewBox="0 0 48 48" fill="none" className="w-5 h-5">
+            <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor" />
+          </svg>
+          <span>QuantumLeap</span>
+        </Link>
 
-        {/* Links */}
-        <nav className="flex items-center gap-9">
-          <Link className="text-white text-sm font-medium" href="#">Home</Link>
-          <Link className="text-white text-sm font-medium" href="#">Explore</Link>
-          <Link className="text-white text-sm font-medium" href="#">My Library</Link>
-          <Link className="text-white text-sm font-medium" href="#">Create</Link>
+        {/* Links - hidden on mobile */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <Link href="#" className="hover:text-blue-400">Home</Link>
+          <Link href="#" className="hover:text-blue-400">Explore</Link>
+          <Link href="#" className="hover:text-blue-400">My Library</Link>
+          <Link href="#" className="hover:text-blue-400">Create</Link>
         </nav>
       </div>
 
       {/* Right side */}
-      <div className="flex flex-1 justify-end gap-8 items-center">
-        {/* Search */}
-        <label className="flex flex-col min-w-40 max-w-64">
-          <div className="flex items-stretch rounded-xl h-10 bg-[#223649]">
-            <div className="text-[#90adcb] flex items-center pl-4">🔍</div>
+      <div className="flex items-center gap-4">
+        {/* Search - hidden on mobile */}
+        <label className="hidden md:flex min-w-40 max-w-64">
+          <div className="flex items-stretch rounded-xl h-10 bg-[#223649] w-full">
+            <div className="text-[#90adcb] flex items-center pl-3">🔍</div>
             <input
               type="text"
               placeholder="Search..."
-              className="flex-1 bg-[#223649] text-white px-4 rounded-r-xl focus:ring-2 focus:ring-[#3b82f6] focus:outline-none"
+              className="flex-1 bg-[#223649] text-white px-3 rounded-r-xl focus:ring-2 focus:ring-[#3b82f6] focus:outline-none"
             />
           </div>
         </label>
 
         {/* Notification */}
-        <button className="rounded-xl h-10 bg-[#223649] text-white px-3">
+        <Button size="icon" variant="ghost" className="rounded-xl bg-[#223649]">
           🔔
-        </button>
+        </Button>
 
         {/* User Avatar */}
         <Link href="/dashboard/profile">
@@ -82,7 +83,25 @@ export default function Navbar() {
             </AvatarFallback>
           </Avatar>
         </Link>
+
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden text-white p-2"
+        >
+          <Menu />
+        </button>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <nav className="absolute top-14 left-0 w-full bg-[#101a23] border-t border-[#223649] flex flex-col items-start px-6 py-4 gap-4 md:hidden z-50">
+          <Link href="#" className="hover:text-blue-400">Home</Link>
+          <Link href="#" className="hover:text-blue-400">Explore</Link>
+          <Link href="#" className="hover:text-blue-400">My Library</Link>
+          <Link href="#" className="hover:text-blue-400">Create</Link>
+        </nav>
+      )}
     </header>
   );
 }
