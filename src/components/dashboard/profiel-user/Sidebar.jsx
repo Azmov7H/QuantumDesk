@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+
 export default function Sidebar() {
   const menuItems = [
     { label: "Home", icon: Home, active: true ,path:"/dashboard/profile"},
@@ -33,9 +34,12 @@ export default function Sidebar() {
         ))}
       </div>
 
+
       <div className="flex items-center gap-3 px-3 py-2">
-        <Settings className="w-5 h-5 text-white" />
-        <p className="text-white text-sm font-medium">Settings</p>
+        <Link  className="flex items-center gap-3 px-3 py-2" href={"/dashboard/profile/settings"}>
+             <Settings className="w-5 h-5 text-white" />
+        <p className="text-white text-sm font-medium">Settings</p></Link>
+   
       </div>
     </div>
   )
