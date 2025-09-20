@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import Image from "next/image"
 
 let socket
 
@@ -17,11 +18,11 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true)
   const scrollRef = useRef(null)
 
-  // 🟢 Fetch chat messages
+  // 🟢 Fetch chat history
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/messages/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -41,7 +42,7 @@ export default function ChatPage() {
 
   // 🟢 Socket.io setup
   useEffect(() => {
-    socket = io(process.env.NEXT_PUBLIC_URL_API, {
+    socket = io(process.env.NEXT_PUBLIC_API_URL, {
       auth: {
         token: localStorage.getItem("token"),
       },
@@ -74,7 +75,7 @@ export default function ChatPage() {
       ...prev,
       {
         ...messageData,
-        sender: { username: "Me" },
+        sender: { username: "Me", profileImage: null },
         createdAt: new Date().toISOString(),
       },
     ])
@@ -95,23 +96,54 @@ export default function ChatPage() {
         <CardContent className="flex flex-col h-[80vh] p-4">
           {/* Messages area */}
           <ScrollArea className="flex-1 p-2">
-            <div className="flex flex-col gap-2">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`p-2 rounded-lg max-w-[70%] ${
-                    msg.sender?.username === "Me"
-                      ? "self-end bg-blue-500 text-white"
-                      : "self-start bg-gray-300 text-black"
-                  }`}
-                >
-                  <p className="font-medium">{msg.sender?.username || "Unknown"}</p>
-                  <p>{msg.content}</p>
-                  <span className="text-xs opacity-70 block">
-                    {new Date(msg.createdAt).toLocaleTimeString()}
-                  </span>
-                </div>
-              ))}
+            <div className="flex flex-col gap-3">
+              {messages.map((msg, i) => {
+                const isMe = msg.sender?.username === "Me"
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-end gap-2 ${
+                      isMe ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    {/* Avatar */}
+                    {!isMe && (
+                      msg.sender?.profileImage ? (
+                        <Image
+                          src={msg.sender.profileImage}
+                          alt={msg.sender.username}
+                          width={32}
+                          height={32}
+                          className="rounded-full"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gray-500 text-white flex items-center justify-center text-sm">
+                          {msg.sender?.username?.[0]?.toUpperCase() || "U"}
+                        </div>
+                      )
+                    )}
+
+                    {/* Message bubble */}
+                    <div
+                      className={`p-2 rounded-xl max-w-[70%] ${
+                        isMe ? "bg-blue-500 text-white" : "bg-gray-200 text-black"
+                      }`}
+                    >
+                      <p>{msg.content}</p>
+                      <span className="text-xs opacity-70 block mt-1">
+                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+
+                    {/* Avatar for me (right side) */}
+                    {isMe && (
+                      <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">
+                        M
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
