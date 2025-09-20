@@ -41,7 +41,7 @@ export default function ChatPage() {
 
   // 🟢 Socket.io setup
   useEffect(() => {
-    socket = io(process.env.NEXT_PUBLIC_API_URL, {
+    socket = io(process.env.NEXT_PUBLIC_URL_API, {
       auth: {
         token: localStorage.getItem("token"),
       },
@@ -67,13 +67,16 @@ export default function ChatPage() {
       content: newMessage,
     }
 
-    // Emit to server
     socket.emit("sendMessage", messageData)
 
     // Optimistic update
     setMessages((prev) => [
       ...prev,
-      { ...messageData, sender: "me", createdAt: new Date().toISOString() },
+      {
+        ...messageData,
+        sender: { username: "Me" },
+        createdAt: new Date().toISOString(),
+      },
     ])
 
     setNewMessage("")
@@ -97,13 +100,14 @@ export default function ChatPage() {
                 <div
                   key={i}
                   className={`p-2 rounded-lg max-w-[70%] ${
-                    msg.sender === "me"
+                    msg.sender?.username === "Me"
                       ? "self-end bg-blue-500 text-white"
                       : "self-start bg-gray-300 text-black"
                   }`}
                 >
+                  <p className="font-medium">{msg.sender?.username || "Unknown"}</p>
                   <p>{msg.content}</p>
-                  <span className="text-xs opacity-70">
+                  <span className="text-xs opacity-70 block">
                     {new Date(msg.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
