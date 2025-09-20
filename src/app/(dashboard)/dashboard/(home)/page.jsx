@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link"
 
 export default function DashboardHome() {
   const [profile, setProfile] = useState(null);
@@ -44,13 +45,10 @@ export default function DashboardHome() {
       try {
         const [profileRes, postsRes] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            },
-             cache: "no-store",
+            headers: { Authorization: `Bearer ${token}` },
+            cache: "no-store",
           }),
-          fetch(`${process.env.NEXT_PUBLIC_URL_API}/posts`, {cache: "no-store"})
-
+          fetch(`${process.env.NEXT_PUBLIC_URL_API}/posts`, { cache: "no-store" }),
         ]);
 
         if (!profileRes.ok) {
@@ -65,9 +63,17 @@ export default function DashboardHome() {
         const postsData = await postsRes.json();
         setPosts(postsData);
 
-        // Preload users for comments
-        const userIds = [...new Set(postsData.flatMap(p => p.comments?.map(c => c.user?._id)).filter(Boolean))];
-        await Promise.all(userIds.map(id => fetchUserById(id)));
+        // Preload users for all comments
+        const userIds = [
+          ...new Set(
+            postsData.flatMap((p) =>
+              p.comments?.map((c) =>
+                typeof c.user === "string" ? c.user : c.user?._id
+              )
+            ).filter(Boolean)
+          ),
+        ];
+        await Promise.all(userIds.map((id) => fetchUserById(id)));
       } catch (err) {
         console.error(err);
         setError("Something went wrong, please try again later.");
@@ -79,17 +85,17 @@ export default function DashboardHome() {
     fetchData();
   }, [token, router]);
 
-  // Fetch user by ID (for comments)
+  // Fetch user by ID
   const fetchUserById = async (userId) => {
     if (commentUsers[userId]) return commentUsers[userId];
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
-         cache: "no-store",
+        cache: "no-store",
       });
       if (!res.ok) throw new Error("Failed to fetch user");
       const user = await res.json();
-      setCommentUsers(prev => ({ ...prev, [userId]: user }));
+      setCommentUsers((prev) => ({ ...prev, [userId]: user }));
       return user;
     } catch (err) {
       console.error(err);
@@ -98,7 +104,7 @@ export default function DashboardHome() {
   };
 
   const handleCommentChange = (postId, value) => {
-    setNewComments(prev => ({ ...prev, [postId]: value }));
+    setNewComments((prev) => ({ ...prev, [postId]: value }));
   };
 
   const handleAddComment = async (postId) => {
@@ -114,17 +120,18 @@ export default function DashboardHome() {
       });
       const comment = await res.json();
 
-      setPosts(prevPosts =>
-        prevPosts.map(p =>
+      setPosts((prevPosts) =>
+        prevPosts.map((p) =>
           p._id === postId ? { ...p, comments: [...(p.comments || []), comment] } : p
         )
       );
 
-      setNewComments(prev => ({ ...prev, [postId]: "" }));
-      setCommentsVisible(prev => ({ ...prev, [postId]: true }));
+      setNewComments((prev) => ({ ...prev, [postId]: "" }));
+      setCommentsVisible((prev) => ({ ...prev, [postId]: true }));
 
-      if (comment.user && !commentUsers[comment.user._id]) {
-        fetchUserById(comment.user._id);
+      const userId = typeof comment.user === "string" ? comment.user : comment.user?._id;
+      if (userId && !commentUsers[userId]) {
+        fetchUserById(userId);
       }
     } catch (err) {
       console.error(err);
@@ -138,8 +145,8 @@ export default function DashboardHome() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const updatedLikes = await res.json();
-      setPosts(prevPosts =>
-        prevPosts.map(p => (p._id === postId ? { ...p, likes: updatedLikes } : p))
+      setPosts((prevPosts) =>
+        prevPosts.map((p) => (p._id === postId ? { ...p, likes: updatedLikes } : p))
       );
     } catch (err) {
       console.error(err);
@@ -147,7 +154,7 @@ export default function DashboardHome() {
   };
 
   const toggleCommentsVisibility = (postId) => {
-    setCommentsVisible(prev => ({ ...prev, [postId]: !prev[postId] }));
+    setCommentsVisible((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
   if (loading) return <div className="text-gray-400">Loading...</div>;
@@ -176,11 +183,13 @@ export default function DashboardHome() {
       )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {posts.map(post => (
+        {posts.map((post) => (
           <div
             key={post._id}
             className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg text-white flex flex-col hover:scale-105 transition-transform duration-300"
           >
+            {/* Author Info */}
+
             {/* Author Info */}
             <div className="flex items-center gap-3 mb-4">
               <img
@@ -188,9 +197,13 @@ export default function DashboardHome() {
                 alt={post.author?.username || "Unknown"}
                 className="w-10 h-10 rounded-full object-cover"
               />
-              <span className="font-bold">{post.author?.username || "Unknown"}</span>
+              <Link
+                href={`/users/${post.author?._id}`}
+                className="font-bold hover:underline text-blue-300"
+              >
+                {post.author?.username || "Unknown"}
+              </Link>
             </div>
-
             {/* Post Image */}
             {post.image && (
               <img
@@ -216,14 +229,22 @@ export default function DashboardHome() {
               variant="secondary"
               onClick={() => toggleCommentsVisibility(post._id)}
             >
-              {commentsVisible[post._id] ? "Hide Comments" : `Show Comments (${post.comments?.length || 0})`}
+              {commentsVisible[post._id]
+                ? "Hide Comments"
+                : `Show Comments (${post.comments?.length || 0})`}
             </Button>
 
             {/* Comments */}
             {commentsVisible[post._id] && (
               <div className="flex flex-col gap-2 mt-2 max-h-64 overflow-y-auto">
+
                 {post.comments?.map((c, index) => {
-                  const user = commentUsers[c.user?._id] || { username: "Unknown", profileImage: "/default-avatar.png" };
+                  // نجيب ال id سواء كان string أو object
+                  const userId = typeof c.user === "string" ? c.user : c.user?._id;
+
+                  // نجيب بيانات اليوزر من الكاش لو موجود
+                  const user = commentUsers[userId] || { username: "Unknown", profileImage: "/default-avatar.png" };
+
                   return (
                     <div key={c._id || index} className="bg-white/20 p-2 rounded flex items-center gap-2">
                       <img
@@ -231,11 +252,17 @@ export default function DashboardHome() {
                         alt={user.username}
                         className="w-6 h-6 rounded-full object-cover"
                       />
-                      <span className="font-bold">{user.username}:</span>
+                      <Link
+                        href={`/dashboard/users/${userId}`}
+                        className="font-bold hover:underline text-blue-300"
+                      >
+                        {user.username}
+                      </Link>
                       <span>{c.content}</span>
                     </div>
                   );
                 })}
+
               </div>
             )}
 
