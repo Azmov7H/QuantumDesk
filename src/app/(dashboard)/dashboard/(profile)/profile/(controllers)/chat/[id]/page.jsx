@@ -22,7 +22,7 @@ export default function ChatPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/messages/${id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/messages/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -42,7 +42,7 @@ export default function ChatPage() {
 
   // 🟢 Socket.io setup
   useEffect(() => {
-    socket = io(process.env.NEXT_PUBLIC_API_URL, {
+    socket = io(process.env.NEXT_PUBLIC_URL_API, {
       auth: {
         token: localStorage.getItem("token"),
       },
