@@ -9,7 +9,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function PostForm({ editPost, onSuccess }) {
   const [title, setTitle] = useState(editPost?.title ?? "");
   const [abstract, setAbstract] = useState(editPost?.summary ?? "");
-  const [review, setReview] = useState(editPost?.content ?? "");
+  const [content, setContent] = useState(editPost?.content ?? "");
   const [image, setImage] = useState(editPost?.image ?? null);
   const [preview, setPreview] = useState(editPost?.image ?? null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,7 @@ export default function PostForm({ editPost, onSuccess }) {
     if (editPost) {
       setTitle(editPost.title ?? "");
       setAbstract(editPost.summary ?? "");
-      setReview(editPost.content ?? "");
+      setContent(editPost.content ?? "");
       setImage(editPost.image ?? null);
       setPreview(editPost.image ?? null);
     }
@@ -50,7 +49,7 @@ export default function PostForm({ editPost, onSuccess }) {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("summary", abstract);
-      formData.append("content", review);
+      formData.append("content", content);
       if (image instanceof File) formData.append("image", image);
 
       const url = editPost
@@ -76,7 +75,7 @@ export default function PostForm({ editPost, onSuccess }) {
       if (!editPost) {
         setTitle("");
         setAbstract("");
-        setReview("");
+        setContent("");
         setImage(null);
         setPreview(null);
       }
@@ -122,7 +121,9 @@ export default function PostForm({ editPost, onSuccess }) {
     <Card className="bg-white/5 backdrop-blur-md rounded-lg p-6 text-white flex flex-col md:flex-row gap-8">
       <CardContent className="flex-1 flex flex-col gap-4">
         <CardHeader>
-          <CardTitle className={'text-white'}>{editPost ? "Edit Post" : "Create New Post"}</CardTitle>
+          <CardTitle className="text-white">
+            {editPost ? "Edit Post" : "Create New Post"}
+          </CardTitle>
         </CardHeader>
 
         <div className="flex flex-col gap-4">
@@ -154,8 +155,8 @@ export default function PostForm({ editPost, onSuccess }) {
             <Textarea
               id="content"
               placeholder="Full content..."
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               rows={8}
               required
             />

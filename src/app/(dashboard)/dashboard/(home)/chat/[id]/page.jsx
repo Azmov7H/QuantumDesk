@@ -20,11 +20,11 @@ export default function ChatPage() {
   const [otherUser, setOtherUser] = useState(null);
   const scrollRef = useRef(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const localUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  const API_BASE = process.env.NEXT_PUBLIC_URL_API;
-  const SOCKET_URL = API_BASE?.replace(/\/api\/?$/, "");
+  const API_BASE = typeof window !== "undefined" ? process.env.NEXT_PUBLIC_URL_API : null;
+  const SOCKET_URL = API_BASE ? API_BASE.replace(/\/api\/?$/, "") : null;
 
   const safeAvatar = (user) => {
     if (!user) return "/default-avatar.png";
@@ -148,11 +148,10 @@ export default function ChatPage() {
                   </div>
                 );
               })}
-                            <div ref={scrollRef} />
+              <div ref={scrollRef} />
             </div>
           </ScrollArea>
 
-          {/* input area */}
           <div className="mt-3 flex gap-2">
             <Input
               placeholder="Type a message..."
@@ -167,7 +166,7 @@ export default function ChatPage() {
             />
             <Button
               onClick={sendMessage}
-              disabled={!socketConnected && !API_BASE}
+              disabled={!socketConnected || !API_BASE}
               className="bg-blue-600 text-white"
             >
               Send
@@ -178,4 +177,3 @@ export default function ChatPage() {
     </div>
   );
 }
-

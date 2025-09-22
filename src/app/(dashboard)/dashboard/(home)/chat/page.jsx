@@ -17,7 +17,10 @@ export default function ChatListPage() {
     const fetchChats = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/chats`, {
+        const API_BASE = process.env.NEXT_PUBLIC_URL_API;
+        if (!API_BASE) return;
+
+        const res = await fetch(`${API_BASE}/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
