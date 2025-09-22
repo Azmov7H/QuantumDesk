@@ -8,30 +8,27 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const API_BASE = "https://be-quantumleap-production.up.railway.app"; // ثابت
-
 export default function ChatListPage() {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) {
-      setChats([]);
-      setLoading(false);
-      return;
-    }
-
     const fetchChats = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/chats`, {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token found");
+
+        // هنا ضع API مباشر بدون repl.it
+        const res = await fetch("https://be-quantumleap-production.up.railway.app/api/chats", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        if (!res.ok) throw new Error("Failed to fetch chats");
         const data = await res.json();
         setChats(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("Failed to fetch chats:", err);
+        console.error(err);
         setChats([]);
       } finally {
         setLoading(false);
