@@ -20,6 +20,7 @@ export default function PostForm({ editPost, onSuccess }) {
   const [image, setImage] = useState(editPost?.image ?? null);
   const [preview, setPreview] = useState(editPost?.image ?? null);
   const [loading, setLoading] = useState(false);
+  const api = process.env.NEXT_PUBLIC_URL_API
 
   useEffect(() => {
     if (editPost) {
@@ -54,8 +55,8 @@ export default function PostForm({ editPost, onSuccess }) {
       if (image instanceof File) formData.append("image", image);
 
       const url = editPost
-        ? `${process.env.NEXT_PUBLIC_URL_API}/posts/${editPost._id}`
-        : `${process.env.NEXT_PUBLIC_URL_API}/posts`;
+        ? `${api}/posts/${editPost._id}`
+        : `${api}/posts`;
       const method = editPost ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -96,7 +97,7 @@ export default function PostForm({ editPost, onSuccess }) {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_URL_API}/posts/${editPost._id}`,
+        `${api}/posts/${editPost._id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
