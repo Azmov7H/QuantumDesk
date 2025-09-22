@@ -18,13 +18,20 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
+  const [apiBase, setApiBase] = useState("");
+  const [socketUrl, setSocketUrl] = useState("");
   const scrollRef = useRef(null);
 
   const localUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  const API_BASE = typeof window !== "undefined" ? process.env.NEXT_PUBLIC_URL_API : null;
-  const SOCKET_URL = API_BASE ? API_BASE.replace(/\/api\/?$/, "") : null;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const base = process.env.NEXT_PUBLIC_URL_API || "";
+      setApiBase(base);
+      setSocketUrl(base.replace(/\/api\/?$/, ""));
+    }
+  }, []);
 
   const safeAvatar = (user) => {
     if (!user) return "/default-avatar.png";
@@ -33,21 +40,19 @@ export default function ChatPage() {
     return `https://ui-avatars.com/api/?name=${name}&background=7c3aed&color=fff`;
   };
 
-  // fetch history
   useEffect(() => {
-    if (!chatId || !API_BASE) return;
+    if (!chatId || !apiBase) return;
     let cancelled = false;
     setLoading(true);
 
     const fetchHistory = async () => {
       try {
-        const res = await fetch(`${API_BASE}/messages/${chatId}`, {
+        const res = await fetch(`${apiBase}/messages/${chatId}`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });
         const data = await res.json();
         if (!cancelled) setMessages(data || []);
-
         const other = data?.find((m) => m.sender?._id !== localUserId)?.sender;
         if (other) setOtherUser(other);
       } catch (err) {
@@ -59,13 +64,12 @@ export default function ChatPage() {
     };
     fetchHistory();
     return () => { cancelled = true; };
-  }, [chatId, API_BASE]);
+  }, [chatId, apiBase]);
 
-  // setup socket
   useEffect(() => {
-    if (!chatId || !SOCKET_URL || !token) return;
+    if (!chatId || !socketUrl || !token) return;
     if (!socketInstance) {
-      socketInstance = io(SOCKET_URL, { auth: { token }, transports: ["websocket", "polling"] });
+      socketInstance = io(socketUrl, { auth: { token }, transports: ["websocket", "polling"] });
     }
     const socket = socketInstance;
 
@@ -87,7 +91,7 @@ export default function ChatPage() {
       socket.off("disconnect");
       socket.off("newMessage");
     };
-  }, [chatId, SOCKET_URL, token, localUserId]);
+  }, [chatId, socketUrl, token, localUserId]);
 
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -100,7 +104,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, { _id: tempId, sender: { _id: localUserId, username: "You" }, content: text, createdAt: new Date().toISOString(), optimistic: true }]);
 
     try {
-      const res = await fetch(`${API_BASE}/messages`, {
+      const res = await fetch(`${apiBase}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ chatId, content: text }),
@@ -166,7 +170,7 @@ export default function ChatPage() {
             />
             <Button
               onClick={sendMessage}
-              disabled={!socketConnected || !API_BASE}
+              disabled={!socketConnected || !apiBase}
               className="bg-blue-600 text-white"
             >
               Send

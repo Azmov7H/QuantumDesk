@@ -11,17 +11,22 @@ import { Button } from "@/components/ui/button";
 export default function ChatListPage() {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [apiBase, setApiBase] = useState("");
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setApiBase(process.env.NEXT_PUBLIC_URL_API || "");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!apiBase) return;
+
     const fetchChats = async () => {
       try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-        const API_BASE = process.env.NEXT_PUBLIC_URL_API;
-        if (!API_BASE) return;
-
-        const res = await fetch(`${API_BASE}/chats`, {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${apiBase}/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -33,7 +38,7 @@ export default function ChatListPage() {
       }
     };
     fetchChats();
-  }, []);
+  }, [apiBase]);
 
   if (loading) return <div className="p-4 text-white">Loading chats...</div>;
 
