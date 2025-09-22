@@ -58,7 +58,7 @@ export default function ChatPage() {
                     variant="ghost"
                     className="flex items-center gap-3 justify-start rounded-none mb-3 p-4"
                     onClick={() =>
-                      router.push(`/dashboard/profile/chat/${chat._id}`)
+                      router.push(`/dashboard/chat/${chat._id}`)
                     }
                   >
                     <Avatar>
