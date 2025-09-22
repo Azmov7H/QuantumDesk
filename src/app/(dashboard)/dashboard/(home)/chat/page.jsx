@@ -1,6 +1,5 @@
 'use client';
-
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,35 +13,30 @@ export default function ChatListPage() {
   const [apiBase, setApiBase] = useState("");
   const router = useRouter();
 
-  // تحديد API base بعد التأكد من وجود window
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const api = process.env.NEXT_PUBLIC_URL_API || "";
-    if (api) setApiBase(api);
+    const api = process.env.NEXT_PUBLIC_URL_API;
+    if (!api) return;
+    setApiBase(api);
   }, []);
 
-  // جلب الدردشات بعد التأكد من وجود apiBase و token
   useEffect(() => {
     if (!apiBase) return;
-    if (typeof window === "undefined") return;
-
     const fetchChats = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
         const res = await fetch(`${apiBase}/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setChats(data || []);
+        setChats(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch chats:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchChats();
   }, [apiBase]);
 
