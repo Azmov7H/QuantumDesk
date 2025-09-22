@@ -19,7 +19,7 @@ export default function PostForm({ editPost, onSuccess }) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setApi(process.env.NEXT_PUBLIC_URL_API || "");
+    setApi(process.env.NEXT_PUBLIC_BASE_URL);
   }, []);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function PostForm({ editPost, onSuccess }) {
       formData.append("content", content);
       if (image instanceof File) formData.append("image", image);
 
-      const res = await fetch(editPost ? `${api}/posts/${editPost._id}` : `${api}/posts`, {
+      const res = await fetch(editPost ? `${api}/api/posts/${editPost._id}` : `${api}/api/posts`, {
         method: editPost ? "PUT" : "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -90,7 +90,7 @@ export default function PostForm({ editPost, onSuccess }) {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${api}/posts/${editPost._id}`, {
+      const res = await fetch(`${api}api/posts/${editPost._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
