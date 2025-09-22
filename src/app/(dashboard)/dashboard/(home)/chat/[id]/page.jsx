@@ -18,19 +18,18 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const [otherUser, setOtherUser] = useState(null);
-  const [apiBase, setApiBase] = useState("");
-  const [socketUrl, setSocketUrl] = useState("");
+  const [apiBase, setApiBase] = useState(null);
+  const [socketUrl, setSocketUrl] = useState(null);
   const scrollRef = useRef(null);
 
-  const localUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
+  // فقط في العميل
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const base = process.env.NEXT_PUBLIC_URL_API || "";
-      setApiBase(base);
-      setSocketUrl(base.replace(/\/api\/?$/, ""));
-    }
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+    const base = process.env.NEXT_PUBLIC_URL_API || "";
+    setApiBase(base);
+    setSocketUrl(base.replace(/\/api\/?$/, ""));
   }, []);
 
   const safeAvatar = (user) => {
@@ -40,8 +39,12 @@ export default function ChatPage() {
     return `https://ui-avatars.com/api/?name=${name}&background=7c3aed&color=fff`;
   };
 
+  // fetch history بعد تحديد apiBase
   useEffect(() => {
     if (!chatId || !apiBase) return;
+    const token = localStorage.getItem("token");
+    const localUserId = localStorage.getItem("userId");
+
     let cancelled = false;
     setLoading(true);
 
@@ -66,8 +69,13 @@ export default function ChatPage() {
     return () => { cancelled = true; };
   }, [chatId, apiBase]);
 
+  // socket بعد تحديد socketUrl
   useEffect(() => {
-    if (!chatId || !socketUrl || !token) return;
+    if (!chatId || !socketUrl) return;
+    const token = localStorage.getItem("token");
+    const localUserId = localStorage.getItem("userId");
+    if (!token || !localUserId) return;
+
     if (!socketInstance) {
       socketInstance = io(socketUrl, { auth: { token }, transports: ["websocket", "polling"] });
     }
@@ -75,7 +83,7 @@ export default function ChatPage() {
 
     socket.on("connect", () => {
       setSocketConnected(true);
-      if (localUserId) socket.emit("user_connected", localUserId);
+      socket.emit("user_connected", localUserId);
       socket.emit("joinChat", chatId);
     });
 
@@ -91,13 +99,15 @@ export default function ChatPage() {
       socket.off("disconnect");
       socket.off("newMessage");
     };
-  }, [chatId, socketUrl, token, localUserId]);
+  }, [chatId, socketUrl]);
 
   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const sendMessage = async () => {
+    const token = localStorage.getItem("token");
+    const localUserId = localStorage.getItem("userId");
     const text = newMessage.trim();
-    if (!text) return;
+    if (!text || !apiBase || !token || !localUserId) return;
     setNewMessage("");
 
     const tempId = `temp-${Date.now()}`;
@@ -134,7 +144,7 @@ export default function ChatPage() {
           <ScrollArea className="flex-1 overflow-y-auto p-2 bg-[rgba(255,255,255,0.02)] rounded-lg">
             <div className="flex flex-col gap-3">
               {messages.map((msg) => {
-                const isMe = msg.sender?._id === localUserId;
+                const isMe = msg.sender?._id === localStorage.getItem("userId");
                 return (
                   <div key={msg._id || msg.createdAt} className={`flex items-end gap-3 ${isMe ? "justify-end" : "justify-start"}`}>
                     {!isMe && (
