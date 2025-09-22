@@ -13,12 +13,13 @@ export default function ChatListPage() {
   const [apiBase, setApiBase] = useState("");
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const api = process.env.NEXT_PUBLIC_URL_API;
-    if (!api) return;
-    setApiBase(api);
-  }, []);
+useEffect(() => {
+  if (typeof window === "undefined") return;
+  const api = process.env.NEXT_PUBLIC_BASE_URL; // <== تم التعديل هنا
+  if (!api) return;
+  setApiBase(api);
+}, []);
+
 
   useEffect(() => {
     if (!apiBase) return;
@@ -26,7 +27,7 @@ export default function ChatListPage() {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        const res = await fetch(`${apiBase}/chats`, {
+        const res = await fetch(`${apiBase}/api/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

@@ -32,7 +32,7 @@ export default function ChatPage() {
     typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
   const API_BASE = process.env.NEXT_PUBLIC_URL_API; // مثال: https://.../api
-  const SOCKET_URL = API_BASE ? API_BASE.replace(/\/api\/?$/, "") : null; // https://...
+  const SOCKET_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
   // ---------- helpers ----------
   const safeAvatar = (user) => {
