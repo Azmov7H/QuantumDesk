@@ -1,2 +1,90 @@
 'use client';
-export { default } from './ChatPageClient';
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+export default function ChatListPage() {
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiBase, setApiBase] = useState("");
+  const router = useRouter();
+
+  // تحديد API base بعد التأكد من وجود window
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const api = process.env.NEXT_PUBLIC_URL_API || "";
+    if (api) setApiBase(api);
+  }, []);
+
+  // جلب الدردشات بعد التأكد من وجود apiBase و token
+  useEffect(() => {
+    if (!apiBase) return;
+    if (typeof window === "undefined") return;
+
+    const fetchChats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        const res = await fetch(`${apiBase}/chats`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setChats(data || []);
+      } catch (err) {
+        console.error("Failed to fetch chats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChats();
+  }, [apiBase]);
+
+  if (loading) return <div className="p-4 text-white">Loading chats...</div>;
+
+  return (
+    <div className="flex h-[90vh] w-full p-4">
+      <Card className="w-full rounded-2xl shadow-md flex flex-col">
+        <CardHeader>
+          <CardTitle>Chats</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col h-full p-0">
+          <div className="p-2">
+            <Input placeholder="Search..." className="rounded-xl" />
+          </div>
+          <ScrollArea className="flex-1 p-2">
+            {chats.length === 0 ? (
+              <div className="text-center text-muted-foreground mt-10">No chats yet</div>
+            ) : (
+              chats.map((chat) => (
+                <Button
+                  key={chat._id}
+                  variant="ghost"
+                  className="flex items-center gap-3 justify-start rounded-none mb-3 p-4"
+                  onClick={() => router.push(`/dashboard/chat/${chat._id}`)}
+                >
+                  <Avatar>
+                    <AvatarImage src={chat.user?.profileImage || "/default-avatar.png"} />
+                    <AvatarFallback>{chat.user?.username?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col text-left">
+                    <span className="font-semibold">{chat.user?.username}</span>
+                    <span className="text-sm text-muted-foreground truncate max-w-[180px]">
+                      {chat.lastMessage || "No messages yet"}
+                    </span>
+                  </div>
+                </Button>
+              ))
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

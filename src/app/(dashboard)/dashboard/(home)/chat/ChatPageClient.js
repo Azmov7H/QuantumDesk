@@ -22,14 +22,14 @@ export default function ChatPageClient() {
   const [socketUrl, setSocketUrl] = useState(null);
   const scrollRef = useRef(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-    const base = process.env.NEXT_PUBLIC_URL_API || "";
-    setApiBase(base);
-    setSocketUrl(base.replace(/\/api\/?$/, ""));
-  }, []);
+useEffect(() => {
+  if (typeof window === 'undefined') return;
+
+  const apiBase = process.env.NEXT_PUBLIC_URL_API || "";
+  setApiBase(apiBase);
+  setSocketUrl(apiBase.replace(/\/api\/?$/, ""));
+}, []);
+
 
   const safeAvatar = (user) => {
     if (!user) return "/default-avatar.png";
