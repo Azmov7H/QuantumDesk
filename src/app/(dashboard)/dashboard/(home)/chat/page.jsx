@@ -15,9 +15,9 @@ export default function ChatListPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setApiBase(process.env.NEXT_PUBLIC_URL_API || "");
-    }
+    if (typeof window === "undefined") return;
+    const api = process.env.NEXT_PUBLIC_URL_API || "";
+    if (api) setApiBase(api);
   }, []);
 
   useEffect(() => {
@@ -25,12 +25,14 @@ export default function ChatListPage() {
 
     const fetchChats = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (!token) return;
+
         const res = await fetch(`${apiBase}/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setChats(data);
+        setChats(data || []);
       } catch (err) {
         console.error("Failed to fetch chats:", err);
       } finally {
