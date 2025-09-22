@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,39 +8,38 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+const API_BASE = "https://be-quantumleap-production.up.railway.app"; // ثابت
+
 export default function ChatListPage() {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [apiBase, setApiBase] = useState("");
   const router = useRouter();
 
-useEffect(() => {
-  if (typeof window === "undefined") return;
-  const api = process.env.NEXT_PUBLIC_BASE_URL; // <== تم التعديل هنا
-  if (!api) return;
-  setApiBase(api);
-}, []);
-
-
   useEffect(() => {
-    if (!apiBase) return;
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!token) {
+      setChats([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchChats = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
       try {
-        const res = await fetch(`${apiBase}/api/chats`, {
+        const res = await fetch(`${API_BASE}/api/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         setChats(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch chats:", err);
+        setChats([]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchChats();
-  }, [apiBase]);
+  }, []);
 
   if (loading) return <div className="p-4 text-white">Loading chats...</div>;
 
