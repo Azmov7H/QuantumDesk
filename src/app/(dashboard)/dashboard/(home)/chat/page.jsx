@@ -16,7 +16,8 @@ export default function ChatListPage() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
         const API_BASE = process.env.NEXT_PUBLIC_URL_API;
         if (!API_BASE) return;
 
