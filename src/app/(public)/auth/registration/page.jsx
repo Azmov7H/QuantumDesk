@@ -36,48 +36,52 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex w-full min-h-screen items-center justify-center">
+    <div className="flex w-full h-full items-center justify-center">
       <ElectricBorder
-              className="flex items-center justify-center w-full max-w-md p-2"
+              className="flex items-center h-full justify-center w-full max-w-md p-2"
         color="#7df9ff"
         speed={1}
         chaos={0.5}
         thickness={2}
         style={{ borderRadius: 16 }}>
-      <Card className="w-full max-w-sm !bg-none">
+      <Card className="w-full h-full !bg-white/10 !backdrop-blur-md !border !border-white/20 gap-4 p-3">
         <CardHeader>
-          <CardTitle>Create an account</CardTitle>
+          <CardTitle className={'text-white'}>Create an account</CardTitle>
           <CardDescription>Enter your details below to register</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
           <CardContent className="flex flex-col gap-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
+            <div className="gap-2">
               <Input
                 id="name"
                 type="text"
                 value={username}
+                className={'text-white'}
+                placeholder="Username"
                 onChange={(e) => setName(e.target.value)}
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
+            <div className=" flex flex-col gap-2">
+
               <Input
                 id="email"
                 type="email"
                 value={email}
+                className={'text-white'}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
+            <div className="mb-2">
               <Input
                 id="password"
                 type="password"
                 value={password}
+                className={'text-white'}
+                placeholder="Password"
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
@@ -96,7 +100,7 @@ export default function RegisterPage() {
               variant="link"
               type="button"
               onClick={() => router.push("/auth/login")}
-              className="w-full"
+              className="w-full text-white"
             >
               Already have an account? Login
             </Button>
