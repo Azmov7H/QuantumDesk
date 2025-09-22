@@ -46,7 +46,7 @@ export default function Navbar() {
 
         {/* Desktop Icons */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/dashboard/new-post" className="p-2 rounded-full hover:bg-[#223649] transition">
+          <Link href="/dashboard/newposts" className="p-2 rounded-full hover:bg-[#223649] transition">
             <PlusCircle size={24} />
           </Link>
           <Link href="/dashboard/chat" className="p-2 rounded-full hover:bg-[#223649] transition">
