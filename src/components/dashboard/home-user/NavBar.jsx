@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { IoChatboxOutline } from "react-icons/io5";
+import { IoIosAdd } from "react-icons/io";
+import { CiSearch } from "react-icons/ci";
+import NotificationBell from "./Notification";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const [profile, setProfile] = useState(null);
@@ -47,11 +51,9 @@ export default function Navbar() {
         </Link>
 
         {/* Links - hidden on mobile */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        <nav className="hidden md:flex items-center  gap-6 text-sm font-medium">
           <Link href="#" className="hover:text-blue-400">Home</Link>
-          <Link href="#" className="hover:text-blue-400">Explore</Link>
-          <Link href="#" className="hover:text-blue-400">My Library</Link>
-          <Link href="#" className="hover:text-blue-400">Create</Link>
+          <Link href="#" className="hover:text-blue-400 flex gap-2 items-center">Create <IoIosAdd className="font-bold" /></Link>
         </nav>
       </div>
 
@@ -60,19 +62,23 @@ export default function Navbar() {
         {/* Search - hidden on mobile */}
         <label className="hidden md:flex min-w-40 max-w-64">
           <div className="flex items-stretch rounded-xl h-10 bg-[#223649] w-full">
-            <div className="text-[#90adcb] flex items-center pl-3">🔍</div>
+            <div className="text-[#90adcb] flex items-center pl-3"><CiSearch /></div>
             <input
               type="text"
               placeholder="Search..."
-              className="flex-1 bg-[#223649] text-white px-3 rounded-r-xl focus:ring-2 focus:ring-[#3b82f6] focus:outline-none"
+              className="flex-1 bg-[#223649] text-white px-3 rounded-r-xl focus:ring-1 focus:ring-[#3b82f6] focus:outline-none"
             />
           </div>
         </label>
 
         {/* Notification */}
-        <Button size="icon" variant="ghost" className="rounded-xl bg-[#223649]">
-          🔔
-        </Button>
+        
+          <NotificationBell />
+          <Button variant="ghost">
+            <Link href={"/dashboard/profile/chat"}><IoChatboxOutline /></Link>
+          </Button>
+          
+       
 
         {/* User Avatar */}
         <Link href="/dashboard/profile">
@@ -97,9 +103,7 @@ export default function Navbar() {
       {menuOpen && (
         <nav className="absolute top-14 left-0 w-full bg-[#101a23] border-t border-[#223649] flex flex-col items-start px-6 py-4 gap-4 md:hidden z-50">
           <Link href="#" className="hover:text-blue-400">Home</Link>
-          <Link href="#" className="hover:text-blue-400">Explore</Link>
-          <Link href="#" className="hover:text-blue-400">My Library</Link>
-          <Link href="#" className="hover:text-blue-400">Create</Link>
+          <Link href="#" className="hover:text-blue-400">Create <IoIosAdd /></Link>
         </nav>
       )}
     </header>
