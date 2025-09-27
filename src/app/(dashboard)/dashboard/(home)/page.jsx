@@ -198,7 +198,7 @@ export default function DashboardHome() {
                 className="w-10 h-10 rounded-full object-cover"
               />
               <Link
-                href={`/users/${post.author?._id}`}
+                href={`/dashboard/users/${post.author?._id}`}
                 className="font-bold hover:underline text-blue-300"
               >
                 {post.author?.username || "Unknown"}

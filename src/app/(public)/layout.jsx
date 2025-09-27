@@ -1,7 +1,7 @@
 import { Toaster } from "sonner";
-import Navbar from "../components/Navbar";
+import Navbar from "../../components/comp/Navbar";
 import "../globals.css";
-import Footer from "../components/Footer";
+import Footer from "../../components/comp/Footer";
 
 export const metadata = {
   title: {
@@ -26,7 +26,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={` antialiased bg-[#172633] text-white font-mono`}>
+      <body className={` antialiased flex flex-col justify-between h-screen bg-[#172633] text-white font-mono`}>
         <Navbar />
         <main className="p-2 mt-4 ">{children}</main>
         <Toaster richColors position="top-center" />

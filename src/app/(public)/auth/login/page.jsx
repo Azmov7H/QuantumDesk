@@ -55,15 +55,15 @@ export default function LoginPage() {
         thickness={2}
         style={{ borderRadius: 16 }}
       >
-        <Card className="w-full !bg-none !border-none">
+        <Card className="w-full !bg-white/10 !backdrop-blur-md !border !border-white/20 gap-3">
           <CardHeader>
-            <CardTitle>Login to your account</CardTitle>
+            <CardTitle className={'text-white'}>Login to your account</CardTitle>
             <CardDescription>
               Enter your email below to login to your account
             </CardDescription>
             <div className="mt-2">
               <Button variant="link" asChild>
-                <Link href="/auth/registration">Sign Up</Link>
+                <Link href="/auth/registration" className={'text-white'}>Sign Up</Link>
               </Button>
             </div>
           </CardHeader>
@@ -72,7 +72,7 @@ export default function LoginPage() {
             <CardContent>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className={'text-white'}>Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -82,12 +82,12 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                <div className="grid gap-2">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
+                <div className="grid gap-4 mb-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="password" className={'text-white'}>Password</Label>
                     <a
                       href="#"
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                      className="ml-auto text-gray-400 inline-block text-sm underline-offset-4 hover:underline"
                     >
                       Forgot your password?
                     </a>

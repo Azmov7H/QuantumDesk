@@ -8,8 +8,8 @@ export default function DesktopSidebar() {
   const menuItems = [
     { label: "Home", icon: Home, path: "/dashboard/profile" },
     { label: "My Posts", icon: FileText, path: "/dashboard/profile/Myposts" },
-    { label: "New Post", icon: Plus, path: "/dashboard/profile/newposts" },
-    { label: "Chat", icon: MessageCircle, path: "/dashboard/profile/chat" },
+   // { label: "New Post", icon: Plus, path: "/dashboard/profile/newposts" },
+   // { label: "Chat", icon: MessageCircle, path: "/dashboard/profile/chat" },
     { label: "Profile", icon: User, path: "/dashboard/profile" },
     { label: "Settings", icon: Settings, path: "/dashboard/profile/settings" },
   ];
