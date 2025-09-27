@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { io } from "socket.io-client"
+import { useRouter } from "next/navigation"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,14 +13,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-
-const socket = io(process.env.NEXT_PUBLIC_URL_API.replace("/api", ""), {
-  transports: ["websocket"],
-})
+import { getSocket } from "@/lib/socket"
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [socket, setSocket] = useState(null)
+  const router = useRouter()
 
   const fetchNotifications = async () => {
     try {
@@ -50,23 +49,56 @@ export default function NotificationBell() {
     }
   }
 
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.read) {
+        const token = localStorage.getItem("token")
+        await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notifications/${notif._id}/read`, {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notif._id ? { ...n, read: true } : n))
+        )
+        setUnreadCount((prev) => prev - 1)
+      }
+
+      // ✅ التوجيه حسب نوع الإشعار
+      if (notif.chat?._id) {
+        router.push(`/chats/${notif.chat._id}`)
+      } else if (notif.post?._id) {
+        router.push(`/posts/${notif.post._id}`)
+      } else {
+        console.log("⚠️ Unknown notification type:", notif)
+      }
+    } catch (err) {
+      console.error("❌ Error handling notif click:", err)
+    }
+  }
+
   useEffect(() => {
     fetchNotifications()
 
-    // 🟢 جلب بيانات اليوزر من التوكن
-    const token = localStorage.getItem("token")
-    if (token) {
-      const payload = JSON.parse(atob(token.split(".")[1]))
-      socket.emit("register", payload.id)
-    }
+    try {
+      const s = getSocket()
+      setSocket(s)
 
-    socket.on("receive_notification", (notif) => {
-      setNotifications((prev) => [notif, ...prev])
-      setUnreadCount((prev) => prev + 1)
-    })
+      const token = localStorage.getItem("token")
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]))
+        s.emit("register", payload.id)
+      }
 
-    return () => {
-      socket.off("receive_notification")
+      s.on("receive_notification", (notif) => {
+        setNotifications((prev) => [notif, ...prev])
+        setUnreadCount((prev) => prev + 1)
+      })
+
+      return () => {
+        s.off("receive_notification")
+      }
+    } catch (err) {
+      console.error("❌ Socket init error:", err)
     }
   }, [])
 
@@ -96,7 +128,10 @@ export default function NotificationBell() {
           notifications.map((notif) => (
             <DropdownMenuItem
               key={notif._id}
-              className={`flex items-center gap-3 ${!notif.read ? "bg-muted" : ""}`}
+              onClick={() => handleNotificationClick(notif)}
+              className={`flex items-center gap-3 cursor-pointer ${
+                !notif.read ? "bg-muted" : ""
+              }`}
             >
               <Avatar>
                 <AvatarImage src={notif.fromUser?.profileImage} />

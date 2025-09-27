@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const API_BASE = "https://be-quantumleap-production.up.railway.app/api";
-const SOCKET_URL = "https://be-quantumleap-production.up.railway.app"; // نفس السيرفر بدون /api
+const SOCKET_URL = "https://be-quantumleap-production.up.railway.app"; 
 
 let socketInstance = null;
 
@@ -59,7 +59,11 @@ export default function ChatPage() {
     socket.on("disconnect", () => setSocketConnected(false));
 
     socket.on("newMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+      setMessages((prev) => {
+        // منع التكرار
+        if (prev.some((m) => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
       if (msg.sender && msg.sender._id !== localUserId) setOtherUser(msg.sender);
     });
 
@@ -98,7 +102,10 @@ export default function ChatPage() {
         body: JSON.stringify({ chatId, content: text }),
       });
       const saved = await res.json();
-      setMessages((prev) => prev.map((m) => (m._id === tempId ? saved : m)));
+      // استبدال الرسالة المؤقتة بالنسخة الحقيقية
+      setMessages((prev) =>
+        prev.map((m) => (m._id === tempId ? saved : m))
+      );
     } catch (err) {
       console.error(err);
       setMessages((prev) => prev.filter((m) => m._id !== tempId));
@@ -136,7 +143,10 @@ export default function ChatPage() {
                     <div className={`rounded-2xl p-3 max-w-[72%] text-sm ${isMe ? "bg-blue-600 text-white" : "bg-zinc-800 text-white"}`} style={{ wordBreak: "break-word" }}>
                       {!isMe && <div className="text-xs text-zinc-300 mb-1 font-semibold">{sender.username}</div>}
                       <div>{msg.content}</div>
-                      <div className="mt-1 text-[10px] opacity-60 text-right">{msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}{msg.optimistic ? " • sending..." : ""}</div>
+                      <div className="mt-1 text-[10px] opacity-60 text-right">
+                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                        {msg.optimistic ? " • sending..." : ""}
+                      </div>
                     </div>
                     {isMe && <div className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden bg-blue-700"><img src="/default-avatar.png" alt="You" className="w-full h-full object-cover"/></div>}
                   </div>
