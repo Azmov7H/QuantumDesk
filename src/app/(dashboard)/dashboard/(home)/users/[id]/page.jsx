@@ -7,18 +7,22 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
 export default function UserProfile() {
-  const { id } = useParams()
+  const params = useParams()
+  const id = params?.id // ✅ ضمان إن id موجود
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
 
-  // 🟢 Fetch user data
   useEffect(() => {
+    if (!id) return
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/${id}`)
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_URL_API}/users/${id}`,
+          { cache: "no-store" } // ✅ منع الـ prerender
+        )
         if (!res.ok) throw new Error("User not found")
         const data = await res.json()
         setUser(data)
@@ -28,11 +32,11 @@ export default function UserProfile() {
         setLoading(false)
       }
     }
-    if (id) fetchUser()
+    fetchUser()
   }, [id])
 
-  // Open or create chat
   const handleChat = async () => {
+    if (typeof window === "undefined") return // ✅ حماية من SSR
     try {
       setChatLoading(true)
       const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/chats`, {
@@ -61,19 +65,14 @@ export default function UserProfile() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md shadow-xl rounded-2xl">
         <CardContent className="flex flex-col items-center gap-6 p-6">
-          {/* Avatar */}
           <Avatar className="h-24 w-24">
             <AvatarImage src={user?.profileImage} alt={user?.username} />
             <AvatarFallback>{user?.username?.[0] || "U"}</AvatarFallback>
           </Avatar>
-
-          {/* Username & Email */}
           <div className="flex flex-col items-center text-center">
             <h2 className="text-xl font-bold">{user.username}</h2>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
-
-          {/* Chat Button */}
           <Button
             onClick={handleChat}
             disabled={chatLoading}
@@ -81,22 +80,6 @@ export default function UserProfile() {
           >
             {chatLoading ? "Opening chat..." : "Message"}
           </Button>
-
-          {/* Stats */}
-          <div className="flex justify-between w-full gap-4 mt-4">
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">125</p>
-              <p className="text-xs text-muted-foreground">Posts</p>
-            </div>
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">342</p>
-              <p className="text-xs text-muted-foreground">Followers</p>
-            </div>
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">578</p>
-              <p className="text-xs text-muted-foreground">Citations</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
