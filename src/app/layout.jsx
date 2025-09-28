@@ -26,7 +26,7 @@ export const metadata = {
     url: "https://quantum-desk.vercel.app",
     images: [
       {
-        url: "/preview.jpg",
+        url: "/https://res.cloudinary.com/ddho5u074/image/upload/v1759079266/openart-image_d4W2XbU__1759076724028_raw_t9udjz.jpg",
         width: 1200,
         height: 630,
         alt: "QuantumLeap preview",
@@ -39,7 +39,7 @@ export const metadata = {
     creator: "@quantumleap",
     title: "QuantumLeap",
     description: "Publish theories, review facts, and collaborate in real-time.",
-    images: ["/preview.jpg"],
+    images: ["/https://res.cloudinary.com/ddho5u074/image/upload/v1759079266/openart-image_d4W2XbU__1759076724028_raw_t9udjz.jpg"],
   },
 };
 
