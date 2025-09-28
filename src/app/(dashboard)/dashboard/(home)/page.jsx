@@ -233,6 +233,10 @@ export default function DashboardHome() {
                 ? "Hide Comments"
                 : `Show Comments (${post.comments?.length || 0})`}
             </Button>
+            {/**/}
+            <Link href={`/dashboard/post/${post._id}`} className="text-blue-300 hover:underline mb-2">
+            Show
+            </Link>
 
             {/* Comments */}
             {commentsVisible[post._id] && (
