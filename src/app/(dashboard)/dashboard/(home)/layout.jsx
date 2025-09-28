@@ -2,6 +2,19 @@
 
 import Navbar from "@/components/dashboard/home-user/NavBar";
 import "../../../globals.css";
+export const metadata = {
+  title: "Dashboard | QuantumLeap",
+  description: "Overview of your posts, chats, and collaborations.",
+  openGraph: {
+    title: "Dashboard | QuantumLeap",
+    description: "Overview of your posts, chats, and collaborations.",
+    url: "https://quantum-desk.vercel.app/dashboard",
+  },
+  twitter: {
+    title: "Dashboard | QuantumLeap",
+    description: "Overview of your posts, chats, and collaborations.",
+  },
+};
 
 export default function DashboardLayout({ children }) {
   return (
