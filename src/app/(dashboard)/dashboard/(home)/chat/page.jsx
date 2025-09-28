@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+const API_BASE = "https://be-quantumleap-production.up.railway.app/api";
+
 export default function ChatListPage() {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,11 +21,9 @@ export default function ChatListPage() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        // هنا ضع API مباشر بدون repl.it
-        const res = await fetch("https://be-quantumleap-production.up.railway.app/api/chats", {
+        const res = await fetch(`${API_BASE}/chats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         if (!res.ok) throw new Error("Failed to fetch chats");
         const data = await res.json();
         setChats(Array.isArray(data) ? data : []);
@@ -63,7 +63,7 @@ export default function ChatListPage() {
                 >
                   <Avatar>
                     <AvatarImage src={chat.user?.profileImage || "/default-avatar.png"} />
-                    <AvatarFallback>{chat.user?.username?.[0]}</AvatarFallback>
+                    <AvatarFallback>{chat.user?.username?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col text-left">
                     <span className="font-semibold">{chat.user?.username}</span>

@@ -5,10 +5,10 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // Components
-import Hero from "@/components/comp/Hero";
-import Empowering from "@/components/comp/Empowering";
-import Featured from "@/components/comp/Featured";
-import Saying from "@/components/comp/Saying";
+import Hero from "@/components/landing/Hero"
+import Saying from "@/components/landing/Saying"
+import Featured from "@/components/landing/Featured"
+import Empowering from "@/components/landing/Empowering"
 
 export default function Page() {
   const router = useRouter();

@@ -13,8 +13,7 @@ export default function SettingsLayout({ children }) {
   ];
 
   return (
-    <html>
-      <body>
+
             <div className="flex min-h-screen bg-[#101a23] text-white">
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex md:flex-col w-64 border-r border-[#223649] p-6 gap-4">
@@ -35,7 +34,6 @@ export default function SettingsLayout({ children }) {
       {/* Main Content */}
       <main className="flex-1 p-8 mt-3 md:p-8 ">{children}</main>
     </div>
-      </body>
-    </html>
+
   );
 }

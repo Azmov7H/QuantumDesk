@@ -1,18 +1,27 @@
-// src/lib/socket.js
-import { io } from "socket.io-client"
+import { io } from "socket.io-client";
 
-let socket = null
+let socket; // singleton
 
 export const getSocket = () => {
-  if (typeof window === "undefined") {
-    // ممنوع socket في السيرفر
-    throw new Error("Socket not initialized!")
-  }
-
   if (!socket) {
-    socket = io(process.env.NEXT_PUBLIC_URL_API.replace("/api", ""), {
+    socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
+      autoConnect: false,
       transports: ["websocket"],
-    })
+    });
+
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("⚠️ Socket disconnected");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Socket connect error:", err);
+    });
   }
-  return socket
-}
+  return socket;
+};
