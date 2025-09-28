@@ -1,31 +1,30 @@
 // src/app/page.jsx
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-import Empowering from "../../components/comp/Empowering"
-import Featured from "../../components/comp/Featured"
-import Hero from "../../components/comp/Hero"
-import Saying from "../../components/comp/Saying"
+// Components
+import Hero from "@/components/comp/Hero";
+import Empowering from "@/components/comp/Empowering";
+import Featured from "@/components/comp/Featured";
+import Saying from "@/components/comp/Saying";
 
 export default function Page() {
-  const router = useRouter()
+  const router = useRouter();
 
   useEffect(() => {
-    // التوكن موجود في localStorage (ممكن تستخدم cookies برضو)
-    const token = localStorage.getItem("token")
-    if (token) {
-      router.push("/dashboard") // توجيه المستخدم مباشرة
-    }
-  }, [router])
+    // Redirect user if token exists
+    const token = localStorage.getItem("token");
+    if (token) router.push("/dashboard");
+  }, [router]);
 
   return (
-    <main className="container mx-auto px-4 flex flex-col gap-16 py-8">
+    <main className="container mx-auto flex flex-col gap-16 py-8 px-4 sm:px-6 md:px-12">
       <Hero />
       <Empowering />
       <Featured />
       <Saying />
     </main>
-  )
+  );
 }

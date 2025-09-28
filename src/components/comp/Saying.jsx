@@ -1,20 +1,19 @@
-'use client'
+"use client";
 
-import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Link from 'next/link'
-import React, { useRef } from 'react'
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import Link from "next/link";
+import { useRef } from "react";
 
 export default function Saying() {
-  const scrollRef = useRef(null)
+  const scrollRef = useRef(null);
 
   const scroll = (direction) => {
-    if (scrollRef.current) {
-      const { scrollLeft, clientWidth } = scrollRef.current
-      const scrollAmount = direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth
-      scrollRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' })
-    }
-  }
+    if (!scrollRef.current) return;
+    const { scrollLeft, clientWidth } = scrollRef.current;
+    const scrollAmount = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+    scrollRef.current.scrollTo({ left: scrollAmount, behavior: "smooth" });
+  };
 
   const testimonials = [
     {
@@ -35,72 +34,56 @@ export default function Saying() {
       quote: "The UI is stunning and the publishing experience is smooth. Highly recommended for serious researchers.",
       image: "https://randomuser.me/api/portraits/women/65.jpg",
     },
-  ]
+  ];
 
   return (
     <section className="w-full flex flex-col gap-6">
-      <h2 className="text-2xl sm:text-3xl font-semibold text-white">
-        What Scientists Are Saying
-      </h2>
+      <h2 className="text-2xl sm:text-3xl font-semibold text-white">What Scientists Are Saying</h2>
 
-      {/* ✅ Slider on small screens */}
+      {/* Mobile Slider */}
       <div className="relative md:hidden">
         <div
           ref={scrollRef}
           className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1 scrollbar-hide"
         >
-          {testimonials.map((testimonial, idx) => (
-            <Card
-              key={idx}
-              className="snap-start min-w-[85%] sm:min-w-[300px] bg-white/10 backdrop-blur-md text-white p-4 rounded-xl"
-            >
+          {testimonials.map((t, idx) => (
+            <Card key={idx} className="snap-start min-w-[85%] sm:min-w-[300px] bg-white/10 backdrop-blur-md text-white p-4 rounded-xl">
               <div className="flex flex-col items-center gap-4 mb-4">
                 <Avatar className="h-24 w-24 rounded-full overflow-hidden">
-                  <AvatarImage src={testimonial.image} className="h-full w-full object-cover" loading="lazy" />
-                  <AvatarFallback className="text-lg">
-                    {testimonial.name.split(" ")[0][0]}{testimonial.name.split(" ")[1]?.[0] ?? ''}
-                  </AvatarFallback>
+                  <AvatarImage src={t.image} loading="lazy" />
+                  <AvatarFallback>{t.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-center text-center">
-                  <span className="font-medium">{testimonial.name}</span>
-                  <span className="text-sm text-white/60">{testimonial.field}</span>
+                  <span className="font-medium">{t.name}</span>
+                  <span className="text-sm text-white/60">{t.field}</span>
                 </div>
               </div>
-              <p className="text-white/90 text-sm mb-2 line-clamp-4">"{testimonial.quote}"</p>
-              <Link href={'/'} className="text-white/70 text-xs hover:underline">
-                View Profile
-              </Link>
+              <p className="text-white/90 text-sm mb-2 line-clamp-4">"{t.quote}"</p>
+              <Link href="/" className="text-white/70 text-xs hover:underline">View Profile</Link>
             </Card>
           ))}
         </div>
       </div>
 
-      {/* ✅ Grid layout for medium and larger screens */}
+      {/* Desktop Grid */}
       <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {testimonials.map((testimonial, idx) => (
-          <Card
-            key={idx}
-            className="bg-white/10 backdrop-blur-md text-white p-6 rounded-xl"
-          >
+        {testimonials.map((t, idx) => (
+          <Card key={idx} className="bg-white/10 backdrop-blur-md text-white p-6 rounded-xl">
             <div className="flex flex-col items-center gap-4 mb-4">
               <Avatar className="h-32 w-32 rounded-full overflow-hidden">
-                <AvatarImage src={testimonial.image} className="h-full w-full object-cover" loading="lazy" />
-                <AvatarFallback className="text-xl">
-                  {testimonial.name.split(" ")[0][0]}{testimonial.name.split(" ")[1]?.[0] ?? ''}
-                </AvatarFallback>
+                <AvatarImage src={t.image} loading="lazy" />
+                <AvatarFallback>{t.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-center text-center">
-                <span className="font-medium">{testimonial.name}</span>
-                <span className="text-sm text-white/60">{testimonial.field}</span>
+                <span className="font-medium">{t.name}</span>
+                <span className="text-sm text-white/60">{t.field}</span>
               </div>
             </div>
-            <p className="text-white/90 text-sm mb-2">"{testimonial.quote}"</p>
-            <Link href={'/'} className="text-white/70 text-xs hover:underline">
-              View Profile
-            </Link>
+            <p className="text-white/90 text-sm mb-2">"{t.quote}"</p>
+            <Link href="/" className="text-white/70 text-xs hover:underline">View Profile</Link>
           </Card>
         ))}
       </div>
     </section>
-  )
+  );
 }
