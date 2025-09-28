@@ -32,7 +32,7 @@ export default function NotFound() {
 
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link
-            href="/"
+            href="/dashboard"
             className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition hover:scale-105 hover:shadow-cyan-500/40"
           >
             Go Home
