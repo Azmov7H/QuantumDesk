@@ -1,10 +1,11 @@
 "use client"
 import { useState } from "react"
 import { updatePreferences } from "@/lib/api"
+import { ThemeContext } from "@/context/ThemeContext"
 
 export default function PreferencesForm() {
   const [lang, setLang] = useState("en")
-  const [theme, setTheme] = useState("light")
+  const {theme, setTheme} = useContext(ThemeContext)
 
   const handleSubmit = async (e) => {
     e.preventDefault()

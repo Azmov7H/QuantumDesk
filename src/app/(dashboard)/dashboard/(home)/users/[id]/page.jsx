@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import UserData from "../components/UserData"
 
 export default function UserProfile() {
   const { id } = useParams()
@@ -58,9 +59,10 @@ export default function UserProfile() {
   if (error) return <div className="text-red-500 p-10">{error}</div>
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-md shadow-xl rounded-2xl">
-        <CardContent className="flex flex-col items-center gap-6 p-6">
+    <>
+    <div className="flex justify-center bg-transparent ">
+      <div className=" w-4/5 mx-auto shadow-xl rounded-2xl">
+        <div className="flex flex-col items-center gap-6 p-6">
           {/* Avatar */}
           <Avatar className="h-24 w-24">
             <AvatarImage src={user?.profileImage} alt={user?.username} />
@@ -69,36 +71,43 @@ export default function UserProfile() {
 
           {/* Username & Email */}
           <div className="flex flex-col items-center text-center">
-            <h2 className="text-xl font-bold">{user.username}</h2>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
+            <h2 className="text-xl text-white font-bold">{user.username}</h2>
+            <p className="text-sm text-[#AD91C9]">{user.email}</p>
           </div>
 
           {/* Chat Button */}
           <Button
             onClick={handleChat}
             disabled={chatLoading}
-            className="w-full"
+            className="w-full bg-[#362447] text-white"
           >
-            {chatLoading ? "Opening chat..." : "Message"}
+            {chatLoading ? "Opening chat..." : "Follow"}
           </Button>
 
           {/* Stats */}
-          <div className="flex justify-between w-full gap-4 mt-4">
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">125</p>
-              <p className="text-xs text-muted-foreground">Posts</p>
+          <div className="flex justify-between w-full gap-4 mt-4 text-white ">
+            <div className="flex-1 text-center border border-[#AD91C9] rounded-lg p-6">
+              <p className="text-lg text-white font-bold mb-6 ">125</p>
+              <p className="text-md text-[#AD91C9]">Posts</p>
             </div>
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">342</p>
-              <p className="text-xs text-muted-foreground">Followers</p>
+            <div className="flex-1 text-center border border-[#AD91C9] rounded-lg p-6">
+              <p className="text-lg text-white font-bold mb-6">342</p>
+              <p className="text-md text-[#AD91C9]">Followers</p>
             </div>
-            <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">578</p>
-              <p className="text-xs text-muted-foreground">Citations</p>
+            <div className="flex-1 text-center border border-[#AD91C9] rounded-lg p-6">
+              <p className="text-lg text-white font-bold mb-6">578</p>
+              <p className="text-md text-[#AD91C9]">Citations</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+    
     </div>
+    <div className=" w-4/5 mx-auto">
+      <UserData />
+    </div>
+
+</>
   )
 }
