@@ -40,7 +40,7 @@ export default function DesktopSidebar() {
           </Link>
           
         ))}
-               <Link href= "/" className="text-white absolute left-5 bottom-6 text-2xl"  onClick = {()=>{logout()}} >Log out</Link>
+               <Link key="Logout" href= "/" className="text-white absolute left-5 bottom-6 text-2xl"  onClick = {()=>{logout()}} >Log out</Link>
         
       </div>
     </div>

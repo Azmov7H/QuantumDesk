@@ -45,9 +45,10 @@ export default function Navbar() {
   if (!profile) return <div className="text-gray-400 px-4">Loading...</div>;
 
   return (
-    <header className="flex items-center justify-between border-b border-[#223649] px-4 md:px-6 py-3 text-white relative bg-[#101a23] z-50">
+    <header className="flex items-center justify-between border-b border-[#223649] px-4 md:px-6 py-3 text-white relative bg-[#101a23] z-50
+    ">
       {/* Left: Logo + Desktop Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold">
           <Logo />
         </Link>

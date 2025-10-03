@@ -20,7 +20,7 @@ export default function Page() {
   }, [router]);
 
   return (
-    <main className="container mx-auto flex flex-col gap-16 py-8 px-4 sm:px-6 md:px-12">
+    <main className="container mx-auto flex flex-col gap-16 py-8 px-4 sm:px-6 md:px-12 bg-white dark:bg-black text-black dark:text-white">
       <Hero />
       <Empowering />
       <Featured />

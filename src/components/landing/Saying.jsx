@@ -47,7 +47,7 @@ export default function Saying() {
           className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory px-1 scrollbar-hide"
         >
           {testimonials.map((t, idx) => (
-            <Card key={idx} className="snap-start min-w-[85%] sm:min-w-[300px] bg-white/10 backdrop-blur-md text-white p-4 rounded-xl">
+            <Card key={idx} className="snap-start min-w-[85%] sm:min-w-[300px] dark:bg-white/10 backdrop-blur-md dark:text-white p-4 rounded-xl">
               <div className="flex flex-col items-center gap-4 mb-4">
                 <Avatar className="h-24 w-24 rounded-full overflow-hidden">
                   <AvatarImage src={t.image} loading="lazy" />
@@ -68,7 +68,7 @@ export default function Saying() {
       {/* Desktop Grid */}
       <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {testimonials.map((t, idx) => (
-          <Card key={idx} className="bg-white/10 backdrop-blur-md text-white p-6 rounded-xl">
+          <Card key={idx} className="dark:bg-white/10 backdrop-blur-md dark:text-white p-6 rounded-xl">
             <div className="flex flex-col items-center gap-4 mb-4">
               <Avatar className="h-32 w-32 rounded-full overflow-hidden">
                 <AvatarImage src={t.image} loading="lazy" />
@@ -76,11 +76,11 @@ export default function Saying() {
               </Avatar>
               <div className="flex flex-col items-center text-center">
                 <span className="font-medium">{t.name}</span>
-                <span className="text-sm text-white/60">{t.field}</span>
+                <span className="text-sm dark:text-white/60">{t.field}</span>
               </div>
             </div>
-            <p className="text-white/90 text-sm mb-2">"{t.quote}"</p>
-            <Link href="/" className="text-white/70 text-xs hover:underline">View Profile</Link>
+            <p className="dark:text-white/90 text-sm mb-2">"{t.quote}"</p>
+            <Link href="/" className="dark:text-white/70 text-xs hover:underline">View Profile</Link>
           </Card>
         ))}
       </div>

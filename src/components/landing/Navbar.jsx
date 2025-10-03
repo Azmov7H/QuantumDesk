@@ -18,7 +18,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="px-4 py-3 flex items-center justify-between relative bg-[#172633] z-50">
+    <nav className="px-4 py-3 flex items-center justify-between relative dark:bg-[#172633] shadow-lg z-50">
       {/* Logo */}
       <Logo />
 

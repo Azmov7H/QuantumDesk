@@ -5,7 +5,7 @@ import { FiGithub, FiTwitter, FiLinkedin } from "react-icons/fi";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0f172a] text-gray-300 mt-10">
+    <footer className="dark:bg-[#0f172a] dark:text-gray-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_-2px_4px_-1px_rgba(0,0,0,0.06)] mt-10">
       <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 py-6">
         {/* Logo / Brand */}
         <span className="text-xl font-semibold text-white">QuantumLeap</span>

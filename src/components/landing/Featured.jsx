@@ -30,7 +30,7 @@ export default function Featured() {
         {articles.map((article, index) => (
           <Card
             key={index}
-            className="overflow-hidden bg-white/10 backdrop-blur-md text-white shadow-md hover:shadow-lg transition rounded-xl"
+            className="overflow-hidden dark:bg-white/10 backdrop-blur-md dark:text-white shadow-md hover:shadow-lg transition rounded-xl"
           >
             <Image
               src={article.image}

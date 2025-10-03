@@ -26,7 +26,7 @@ export default function Empowering() {
         {features.map((feature, index) => (
           <Card
             key={index}
-            className="bg-white/10 backdrop-blur-md p-6 rounded-xl text-white shadow-md hover:shadow-lg transition"
+            className="dark:bg-white/10 backdrop-blur-md p-6 rounded-xl dark:text-white shadow-md hover:shadow-lg transition"
           >
             <div className="flex flex-col gap-3 items-center text-center">
               <div className="icon">{feature.icon}</div>

@@ -19,7 +19,7 @@ export const metadata = {
 export default function DashboardLayout({ children }) {
   return (
 
-        <div className="flex flex-col min-h-screen bg-[#101a23]">
+        <div className="flex flex-col min-h-screen bg-[#101a23] bg-white dark:bg-black text-black dark:text-white">
           <Navbar />
           <main className="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 flex-col py-5">
             {children}

@@ -8,7 +8,7 @@ import "../../../../../globals.css";
 export default function ProfileLayout({ children }) {
   return (
 
-        <div className="flex min-h-screen bg-[#101a23]">
+        <div className="flex min-h-screen bg-[#101a23] ">
           {/* Sidebar للـ Desktop */}
           <aside className="hidden md:flex md:w-64 border-r border-[#223649]">
             <DesktopSidebar />

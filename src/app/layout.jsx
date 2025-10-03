@@ -1,6 +1,5 @@
-import React from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeWrapper } from "./ThemeWrapper";
 export const metadata = {
   title: {
     default: "QuantumLeap — Scientific Publishing & Collaboration",
@@ -49,15 +48,18 @@ export const metadata = {
 };
 
 export default function home({ children }) {
+
+ 
   return (
     <html>
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body>
-        <ThemeProvider >
-                  <div>{children}</div>
-        </ThemeProvider>
+      <body className="bg-white dark:bg-black text-black dark:text-white " >
+        <ThemeWrapper>
+           <div className="bg-white dark:bg-black text-black dark:text-white">{children}</div>
+        </ThemeWrapper>
+                 
       </body>
     </html>
   );

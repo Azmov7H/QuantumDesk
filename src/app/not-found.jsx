@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 export default function NotFound() {
   return (
-    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-950 text-white">
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br dark:from-gray-900 dark:via-black dark:to-gray-950 dark:text-white">
       
       {/* Animated radial background */}
       <motion.div
@@ -26,7 +26,7 @@ export default function NotFound() {
         <h1 className="text-[6rem] md:text-[8rem] font-extrabold leading-none tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 drop-shadow-lg">
           404
         </h1>
-        <p className="mt-4 text-lg md:text-2xl text-gray-300 max-w-lg">
+        <p className="mt-4 text-lg md:text-2xl dark:text-gray-300 max-w-lg">
           Oops! The page you’re looking for doesn’t exist, or it might have been moved.
         </p>
 
@@ -39,7 +39,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/dashboard"
-            className="rounded-2xl border border-gray-500 px-6 py-3 font-semibold text-gray-300 hover:text-white hover:border-cyan-400 transition"
+            className="rounded-2xl border border-gray-500 px-6 py-3 font-semibold dark:text-gray-300 dark:hover:text-white hover:border-cyan-400 transition"
           >
             Dashboard
           </Link>

@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { updatePreferences } from "@/lib/api"
 import { ThemeContext } from "@/context/ThemeContext"
+import { useContext } from "react"
 
 export default function PreferencesForm() {
   const [lang, setLang] = useState("en")
@@ -18,7 +19,7 @@ export default function PreferencesForm() {
       <h2 className="text-xl font-bold mb-4">Preferences</h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-sm">Language</label>
+          <label className="block text-sm ">Language</label>
           <select
             className="w-full border rounded p-2"
             value={lang}
