@@ -1,7 +1,7 @@
 // lib/api.js
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_URL_API || process.env.NEXT_PUBLIC_API_URL
+  process.env.NEXT_PUBLIC_URL_API 
 
 // 🔑 Helper to get token from localStorage
 function getToken() {

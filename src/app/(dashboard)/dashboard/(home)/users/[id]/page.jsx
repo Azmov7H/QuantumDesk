@@ -73,6 +73,25 @@ export default function UserProfile() {
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
 
+          {/* Social Links */}
+          <div className="flex gap-3">
+            {user.socialLinks?.facebook && (
+              <a href={user.socialLinks.facebook} target="_blank" rel="noreferrer" className="text-blue-600 text-sm">
+                Facebook
+              </a>
+            )}
+            {user.socialLinks?.linkedin && (
+              <a href={user.socialLinks.linkedin} target="_blank" rel="noreferrer" className="text-blue-700 text-sm">
+                LinkedIn
+              </a>
+            )}
+            {user.socialLinks?.whatsapp && (
+              <a href={`https://wa.me/${user.socialLinks.whatsapp}`} target="_blank" rel="noreferrer" className="text-green-600 text-sm">
+                WhatsApp
+              </a>
+            )}
+          </div>
+
           {/* Chat Button */}
           <Button
             onClick={handleChat}
@@ -85,16 +104,16 @@ export default function UserProfile() {
           {/* Stats */}
           <div className="flex justify-between w-full gap-4 mt-4">
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">125</p>
+              <p className="text-lg font-bold">{user.postsCount || 0}</p>
               <p className="text-xs text-muted-foreground">Posts</p>
             </div>
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">342</p>
+              <p className="text-lg font-bold">{user.followers?.length || 0}</p>
               <p className="text-xs text-muted-foreground">Followers</p>
             </div>
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">578</p>
-              <p className="text-xs text-muted-foreground">Citations</p>
+              <p className="text-lg font-bold">{user.following?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Following</p>
             </div>
           </div>
         </CardContent>
