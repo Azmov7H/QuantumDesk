@@ -13,15 +13,24 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
+  const [followLoading, setFollowLoading] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(false)
 
   // 🟢 Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/${id}`)
+        const token = localStorage.getItem("token")
+        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         if (!res.ok) throw new Error("User not found")
         const data = await res.json()
         setUser(data)
+
+        // هل اليوزر الحالي متابع هذا الشخص؟
+        const authId = JSON.parse(atob(token.split(".")[1])).id
+        setIsFollowing(data.followers.includes(authId))
       } catch (err) {
         setError(err.message)
       } finally {
@@ -30,6 +39,36 @@ export default function UserProfile() {
     }
     if (id) fetchUser()
   }, [id])
+
+  // 🔵 Follow / Unfollow handler
+  const handleFollow = async () => {
+    try {
+      setFollowLoading(true)
+      const token = localStorage.getItem("token")
+
+      const endpoint = isFollowing
+        ? `${process.env.NEXT_PUBLIC_URL_API}/users/${id}/unfollow`
+        : `${process.env.NEXT_PUBLIC_URL_API}/users/${id}/follow`
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!res.ok) throw new Error("Failed to update follow state")
+      const data = await res.json()
+
+      // تحديث الحالة
+      setUser(data.user)
+      setIsFollowing(!isFollowing)
+    } catch (err) {
+      alert("❌ " + err.message)
+    } finally {
+      setFollowLoading(false)
+    }
+  }
 
   // Open or create chat
   const handleChat = async () => {
@@ -73,28 +112,38 @@ export default function UserProfile() {
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
 
-          {/* Chat Button */}
-          <Button
-            onClick={handleChat}
-            disabled={chatLoading}
-            className="w-full"
-          >
-            {chatLoading ? "Opening chat..." : "Message"}
-          </Button>
+          {/* Buttons: Follow + Chat */}
+          <div className="flex gap-3 w-full">
+            <Button
+              onClick={handleFollow}
+              disabled={followLoading}
+              variant={isFollowing ? "secondary" : "default"}
+              className="w-full"
+            >
+              {followLoading ? "Loading..." : isFollowing ? "Unfollow" : "Follow"}
+            </Button>
+            <Button
+              onClick={handleChat}
+              disabled={chatLoading}
+              className="w-full"
+            >
+              {chatLoading ? "Opening..." : "Message"}
+            </Button>
+          </div>
 
           {/* Stats */}
           <div className="flex justify-between w-full gap-4 mt-4">
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">125</p>
+              <p className="text-lg font-bold">{user.postsCount || 0}</p>
               <p className="text-xs text-muted-foreground">Posts</p>
             </div>
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">342</p>
+              <p className="text-lg font-bold">{user.followers?.length || 0}</p>
               <p className="text-xs text-muted-foreground">Followers</p>
             </div>
             <div className="flex-1 text-center border rounded-lg p-2">
-              <p className="text-lg font-bold">578</p>
-              <p className="text-xs text-muted-foreground">Citations</p>
+              <p className="text-lg font-bold">{user.following?.length || 0}</p>
+              <p className="text-xs text-muted-foreground">Following</p>
             </div>
           </div>
         </CardContent>
