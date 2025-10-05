@@ -21,7 +21,7 @@ const DEFAULT_BASE = typeof window !== 'undefined' ? window.__API_BASE__ || '' :
 const TOKEN_KEY = 'ql_jwt_token'; // localStorage key (change if you want)
 
 const config = {
-  baseURL: DEFAULT_BASE || process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000',
+  baseURL: DEFAULT_BASE || process.env.NEXT_PUBLIC_API_BASE ,
   tokenKey: TOKEN_KEY,
   retry: {
     retries: 3,
