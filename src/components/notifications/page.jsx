@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getSocket } from "@/lib/socket";
+import api from "@/lib/api";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
@@ -21,85 +21,60 @@ export default function NotificationBell() {
   const [hydrated, setHydrated] = useState(false);
   const router = useRouter();
 
-  // Fetch notifications once on mount
   useEffect(() => {
-    setHydrated(true); // client-only rendering
+    setHydrated(true);
 
+    // 1️⃣ جلب الإشعارات عبر API
     const fetchNotifications = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setNotifications(data);
-        setUnreadCount(data.filter((n) => !n.read).length);
-      } catch (err) {
-        console.error("❌ Fetch notifications error:", err);
+      const res = await api.notifications.list();
+      if (res.ok) {
+        setNotifications(res.data);
+        setUnreadCount(res.data.filter((n) => !n.read).length);
+      } else {
+        console.error("❌ Fetch notifications failed", res.error);
       }
     };
 
     fetchNotifications();
 
-    const socket = getSocket();
+    // 2️⃣ تهيئة Socket.io realtime
+    api.initRealtime().then(() => {
+      // 3️⃣ الاشتراك في أي إشعار جديد
+      const unsub = api.subscribe("receive_notification", (notif) => {
+        setNotifications((prev) => [notif, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      });
 
-    socket.on("connect", () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        socket.emit("register", payload.id);
-      }
+      return () => unsub(); // تنظيف الاشتراك عند unmount
     });
-
-    socket.on("receive_notification", (notif) => {
-      setNotifications((prev) => [notif, ...prev]);
-      setUnreadCount((prev) => prev + 1);
-    });
-
-    return () => {
-      socket.off("receive_notification");
-    };
   }, []);
 
   const markAllAsRead = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notifications/read`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const res = await api.notifications.markAllRead();
+    if (res.ok) {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
-    } catch (err) {
-      console.error("❌ Mark all read error:", err);
+    } else {
+      console.error("❌ Mark all read failed", res.error);
     }
   };
 
   const handleNotificationClick = async (notif) => {
-    try {
-      if (!notif.read) {
-        const token = localStorage.getItem("token");
-        await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notifications/${notif._id}/read`, {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    if (!notif.read) {
+      const res = await api.notifications.markRead(notif._id);
+      if (res.ok) {
         setNotifications((prev) =>
           prev.map((n) => (n._id === notif._id ? { ...n, read: true } : n))
         );
         setUnreadCount((prev) => prev - 1);
       }
-
-      if (notif.chat?._id) router.push(`/chats/${notif.chat._id}`);
-      else if (notif.post?._id) router.push(`/posts/${notif.post._id}`);
-      else console.log("⚠️ Unknown notification type:", notif);
-    } catch (err) {
-      console.error("❌ Handle notification click error:", err);
     }
+
+    if (notif.chat) router.push(`/chats/${notif.chat}`);
+    else if (notif.post) router.push(`/posts/${notif.post}`);
+    else console.log("⚠️ Unknown notification type:", notif);
   };
 
-  // لا نعرض الوقت إلا بعد الـ hydration لتجنب mismatch
   if (!hydrated) return null;
 
   return (

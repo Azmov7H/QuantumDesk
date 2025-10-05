@@ -1,71 +1,104 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import api from "@/lib/api";
 
-const API_BASE = process.env.NEXT_PUBLIC_URL_API
+export default function CommentsSection({ postId, currentUser }) {
+  const [comments, setComments] = useState([]);
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-export default function CommentsSection({ postId, initialComments }) {
-  const [comments, setComments] = useState(initialComments);
-  const [newComment, setNewComment] = useState("");
+  // 1️⃣ Load initial comments + subscribe to new comments
+  useEffect(() => {
+    const fetchComments = async () => {
+      const res = await api.comments.list(postId);
+      if (res.ok) setComments(res.data);
+      else console.error("❌ Fetch comments failed", res.error);
+    };
 
-  const handleComment = async (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+    fetchComments();
 
-    try {
-      const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: newComment }),
-      });
-      const data = await res.json();
-      setComments((prev) => [data, ...prev]);
-      setNewComment("");
-    } catch (err) {
-      console.error("Comment error:", err);
+    // subscribe to new comments via socket
+    const unsub = api.subscribe("new_comment", (payload) => {
+      if (payload.postId === postId) {
+        setComments((prev) => [payload.comment, ...prev]);
+      }
+    });
+
+    return () => unsub();
+  }, [postId]);
+
+  // 2️⃣ Add comment
+  const handleAddComment = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+
+    // optimistic update
+    const tempId = `temp-${Date.now()}`;
+    const optimistic = {
+      _id: tempId,
+      content: text,
+      user: currentUser,
+      createdAt: new Date(),
+      pending: true,
+    };
+    setComments((prev) => [optimistic, ...prev]);
+    setText("");
+
+    const res = await api.addCommentAndEmit(postId, { text });
+
+    if (res.ok) {
+      setComments((prev) =>
+        prev.map((c) => (c._id === tempId ? res.data : c))
+      );
+    } else {
+      // mark as failed
+      setComments((prev) =>
+        prev.map((c) => (c._id === tempId ? { ...c, pending: false, error: res.error } : c))
+      );
+      console.error("❌ Comment failed", res.error);
     }
+
+    setLoading(false);
   };
 
   return (
-    <Card className="rounded-2xl shadow-md">
-      <CardContent className="p-6 space-y-6">
-        <h2 className="text-xl font-semibold">Comments</h2>
+    <div className="space-y-4">
+      {/* Input */}
+      <div className="flex gap-2">
+        <Input
+          placeholder="Write a comment..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <Button onClick={handleAddComment} disabled={loading}>
+          {loading ? "..." : "Send"}
+        </Button>
+      </div>
 
-        {/* إضافة تعليق */}
-        <form onSubmit={handleComment} className="flex gap-2">
-          <Input
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Write a comment..."
-          />
-          <Button type="submit">Post</Button>
-        </form>
-
-        {/* عرض التعليقات */}
-        <div className="space-y-4">
-          {comments.length === 0 && (
-            <p className="text-gray-500">No comments yet.</p>
-          )}
-          {comments.map((c, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <Avatar>
-                <AvatarImage src={c.user?.profileImage} />
-                <AvatarFallback>
-                  {c.user?.username?.[0] || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-semibold">{c.user?.username}</p>
-                <p className="text-sm text-gray-700">{c.text}</p>
-              </div>
+      {/* Comments list */}
+      <div className="space-y-3">
+        {comments.map((c) => (
+          <div key={c._id || `comment-${Date.now()}-${Math.random()}`} className={`flex items-start gap-3 ${c.pending ? "opacity-70" : ""}`}>
+            <Avatar>
+              <AvatarImage src={c.user?.profileImage || ""} />
+              <AvatarFallback>{c.user?.username?.[0] || "U"}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col text-white ">
+              <span className="text-sm font-medium">{c.user?.username || "Unknown"}</span>
+              <p className="text-sm">{c.content}</p>
+              <span className="text-xs text-muted-foreground">
+                {new Date(c.createdAt).toLocaleTimeString()}
+                {c.pending && " (sending...)"}
+                {c.error && " (failed)"}
+              </span>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
