@@ -1,21 +1,21 @@
-// src/app/page.jsx
 "use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/lib/api"; // <-- استخدام tokenStore
 
 // Components
-import Hero from "@/components/landing/Hero"
-import Saying from "@/components/landing/Saying"
-import Featured from "@/components/landing/Featured"
-import Empowering from "@/components/landing/Empowering"
+import Hero from "@/components/landing/Hero";
+import Saying from "@/components/landing/Saying";
+import Featured from "@/components/landing/Featured";
+import Empowering from "@/components/landing/Empowering";
 
 export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect user if token exists
-    const token = localStorage.getItem("token");
+    // Redirect user if token exists in api.tokenStore
+    const token = api.token.get();
     if (token) router.push("/dashboard");
   }, [router]);
 

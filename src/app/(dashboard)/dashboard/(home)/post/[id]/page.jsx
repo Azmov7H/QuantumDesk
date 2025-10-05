@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import LikeButton from "./LikeButton";
+import LikeButton from "@/components/dashboard/home-user/LikeButton";
 import CommentsSection from "./CommentsSection";
+import Image from "next/image";
+import api from "@/lib/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_URL_API;
 
@@ -50,13 +52,17 @@ export default async function PostPage({ params }) {
             By {post.author?.username} •{" "}
             {new Date(post.createdAt).toLocaleDateString()}
           </p>
+
           {post.image && (
-            <img
+            <Image
               src={post.image}
               alt={post.title}
+              width={800}
+              height={400}
               className="w-full h-64 object-cover rounded-lg"
             />
           )}
+
           <div className="prose max-w-none">{post.content}</div>
 
           {/* لايك = Client Component */}

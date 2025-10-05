@@ -2,9 +2,9 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { loginUser } from "@/lib/api"
+import api from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import ElectricBorder from "@/components/ElectricBorder"
+
 import {
   Card, CardContent, CardDescription,
   CardFooter, CardHeader, CardTitle
@@ -21,49 +21,45 @@ export default function LoginPage() {
 
   const router = useRouter()
 
- const handleSubmit = async (e) => {
-  e.preventDefault()
-  setLoading(true)
+  // -----------------------------
+  // Handle login using api.js
+  // -----------------------------
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
 
-  try {
-    const data = await loginUser({ email, password })
+    try {
+      // يستخدم auth module من api.js
+      const res = await api.auth.login(email, password)
 
-    if (!data?.token) {
-      throw new Error("Token not found in response")
+      if (!res.ok || !res.data?.token) {
+        throw new Error(res.error || "Login failed")
+      }
+
+      toast.success("Login successful")
+
+      // بعد تسجيل الدخول يتم التوجيه للـ dashboard
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Login error:", err)
+      toast.error(err?.message || "Login failed")
+    } finally {
+      setLoading(false)
     }
-
-    localStorage.setItem("token", data.token)
-    toast.success("Login successful")
-
-    router.push("/dashboard")
-  } catch (err) {
-    console.error("Login error:", err)
-    toast.error(err?.response?.data?.message || err.message || "Login failed")
-  } finally {
-    setLoading(false)
   }
-}
-
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <ElectricBorder
-        className="flex items-center justify-center w-full max-w-md p-2"
-        color="#7df9ff"
-        speed={1}
-        chaos={0.5}
-        thickness={2}
-        style={{ borderRadius: 16 }}
-      >
+
         <Card className="w-full !bg-white/10 !backdrop-blur-md !border !border-white/20 gap-3">
           <CardHeader>
-            <CardTitle className={'text-white'}>Login to your account</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-white">Login to your account</CardTitle>
+            <CardDescription className="text-white/80">
               Enter your email below to login to your account
             </CardDescription>
             <div className="mt-2">
               <Button variant="link" asChild>
-                <Link href="/auth/registration" className={'text-white'}>Sign Up</Link>
+                <Link href="/auth/registration" className="text-white">Sign Up</Link>
               </Button>
             </div>
           </CardHeader>
@@ -72,7 +68,7 @@ export default function LoginPage() {
             <CardContent>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className={'text-white'}>Email</Label>
+                  <Label htmlFor="email" className="text-white">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -82,12 +78,13 @@ export default function LoginPage() {
                     required
                   />
                 </div>
+
                 <div className="grid gap-4 mb-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="password" className={'text-white'}>Password</Label>
+                    <Label htmlFor="password" className="text-white">Password</Label>
                     <a
                       href="#"
-                      className="ml-auto text-gray-400 inline-block text-sm underline-offset-4 hover:underline"
+                      className="ml-auto text-gray-400 text-sm underline-offset-4 hover:underline"
                     >
                       Forgot your password?
                     </a>
@@ -117,7 +114,7 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
-      </ElectricBorder>
+
     </div>
   )
 }
