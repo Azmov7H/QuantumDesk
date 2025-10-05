@@ -17,11 +17,17 @@ export default function Navbar() {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Fetch user profile once on mount
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+    // لو مفيش توكن، المستخدم يشتغل كـ "ضيف"
     if (!token) {
-      window.location.href = "/auth/login";
+      setProfile({
+        username: "Guest",
+        _id: "guest",
+        profileImage: "/default-avatar.png",
+      });
       return;
     }
 
@@ -34,15 +40,25 @@ export default function Navbar() {
         const data = await res.json();
         setProfile(data);
       } catch (err) {
-        setError(err.message);
+        console.error(err);
+        setProfile({
+          username: "Guest",
+          _id: "guest",
+          profileImage: "/default-avatar.png",
+        });
       }
     };
 
     fetchProfile();
   }, []);
 
-  if (error) return <div className="text-red-500 px-4">{error}</div>;
-  if (!profile) return <div className="text-gray-400 px-4">Loading...</div>;
+  if (error)
+    return <div className="text-red-500 px-4">Error: {error}</div>;
+
+  if (!profile)
+    return <div className="text-gray-400 px-4">Loading...</div>;
+
+  const isGuest = profile._id === "guest";
 
   return (
     <header className="flex items-center justify-between border-b border-[#223649] px-4 md:px-6 py-3 text-white relative bg-[#101a23] z-50">
@@ -52,20 +68,22 @@ export default function Navbar() {
           <Logo />
         </Link>
 
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/dashboard/newposts"
-            className="p-2 rounded-full hover:bg-[#223649] transition-colors"
-          >
-            <PlusCircle size={24} />
-          </Link>
-          <Link
-            href="/dashboard/chat"
-            className="p-2 rounded-full hover:bg-[#223649] transition-colors"
-          >
-            <MessageSquare size={24} />
-          </Link>
-        </div>
+        {!isGuest && (
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              href="/dashboard/newposts"
+              className="p-2 rounded-full hover:bg-[#223649] transition-colors"
+            >
+              <PlusCircle size={24} />
+            </Link>
+            <Link
+              href="/dashboard/chat"
+              className="p-2 rounded-full hover:bg-[#223649] transition-colors"
+            >
+              <MessageSquare size={24} />
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Middle: Search */}
@@ -83,33 +101,42 @@ export default function Navbar() {
 
       {/* Right: Notifications + Avatar + Mobile Menu */}
       <div className="flex items-center gap-3">
-        <NotificationBell />
+        {!isGuest && <NotificationBell />}
 
-        <Link href="/dashboard/profile">
+        <Link
+          href={
+            isGuest
+              ? "/auth/login"
+              : "/dashboard/profile"
+          }
+          title={isGuest ? "Login to access your profile" : "Your Profile"}
+        >
           <Avatar>
-            <AvatarImage src={profile.profileImage || "/default-avatar.png"} />
+            <AvatarImage src={profile.profileImage} />
             <AvatarFallback>
-              {profile.username ? profile.username.slice(0, 2).toUpperCase() : "NA"}
+              {profile.username?.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Link>
 
         {/* Mobile Menu Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden p-2"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <Menu />
-        </Button>
+        {!isGuest && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden p-2"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <Menu />
+          </Button>
+        )}
       </div>
 
       {/* Mobile Dropdown */}
-      {menuOpen && (
+      {!isGuest && menuOpen && (
         <nav className="absolute top-full left-0 w-full bg-[#101a23] border-t border-[#223649] flex flex-col items-start px-6 py-4 gap-4 md:hidden">
           <Link
-            href="/dashboard/new-post"
+            href="/dashboard/newposts"
             className="flex items-center gap-2 p-2 hover:bg-[#223649] rounded transition-colors w-full"
           >
             <PlusCircle size={20} /> New Post
