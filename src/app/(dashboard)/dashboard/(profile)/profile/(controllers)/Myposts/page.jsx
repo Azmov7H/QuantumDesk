@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import api from "@/lib/api"
 
 export default function MyPosts() {
   const [posts, setPosts] = useState([])
@@ -9,13 +10,9 @@ export default function MyPosts() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_URL_API}/posts`,
-          { cache: "no-store" }
-        )
-        if (!res.ok) throw new Error("Failed to fetch posts")
-        const data = await res.json()
-        setPosts(data)
+        const res = await api.posts.list()
+        if (!res.ok) throw new Error(res.error || "Failed to fetch posts")
+        setPosts(res.data)
       } catch (err) {
         console.error(err)
         setPosts([]) // fallback to empty array

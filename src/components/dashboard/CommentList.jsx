@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 export default function CommentList({ comments, commentUsers }) {
   return (
@@ -9,7 +10,7 @@ export default function CommentList({ comments, commentUsers }) {
 
         return (
           <div key={c._id || index} className="bg-white/20 p-2 rounded flex items-center gap-2">
-            <img src={user.profileImage} alt={user.username} className="w-6 h-6 rounded-full object-cover" />
+            <Image src={user.profileImage || "/default-avatar.png"} alt={user.username} width={24} height={24} className="rounded-full object-cover" />
             <Link href={`/dashboard/users/${userId}`} className="font-bold hover:underline text-blue-300">
               {user.username}
             </Link>

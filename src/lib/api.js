@@ -10,18 +10,31 @@
 // Usage: import api from '@/lib/api'
 // or import { auth, posts, initRealtime, subscribe, emit } from '@/lib/api'
 
-/* eslint-disable no-console */
+// Note: console usage is intentional for network and socket diagnostics
 
 import { io } from 'socket.io-client';
 
 // -----------------------------
 // Config
 // -----------------------------
-const DEFAULT_BASE = typeof window !== 'undefined' ? window.__API_BASE__ || '' : ''; // allow SSR-safe override
-const TOKEN_KEY = 'ql_jwt_token'; // localStorage key (change if you want)
+const DEFAULT_BASE = typeof window !== 'undefined' ? (window.__API_BASE__ || '') : '';
+
+function getGuessedBase() {
+  if (typeof window === 'undefined') return '';
+  try {
+    const { protocol, hostname, port } = window.location;
+    // Heuristic: if running on 3000, try backend on 5000
+    const guessedPort = port === '3000' ? '5000' : port;
+    const origin = guessedPort ? `${protocol}//${hostname}:${guessedPort}` : `${protocol}//${hostname}`;
+    return origin;
+  } catch (_) {
+    return '';
+  }
+}
+const TOKEN_KEY = 'token'; // localStorage key (change if you want)
 
 const config = {
-  baseURL: DEFAULT_BASE || process.env.NEXT_PUBLIC_API_BASE ,
+  baseURL:  process.env.NEXT_PUBLIC_API_BASE ,
   tokenKey: TOKEN_KEY,
   retry: {
     retries: 3,
@@ -84,7 +97,11 @@ function sleep(ms) {
 // - auto-handles 401 by clearing token + redirect
 // -----------------------------
 async function safeFetch(path, opts = {}, { retries = config.retry.retries } = {}) {
-  const url = path.startsWith('http') ? path : `${config.baseURL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  // Build base safely even if NEXT_PUBLIC_API_BASE is undefined
+  const base = (config.baseURL || DEFAULT_BASE || getGuessedBase() || '').toString();
+  const baseTrim = base ? base.replace(/\/$/, '') : '';
+  const rel = path.replace(/^\//, '');
+  const url = path.startsWith('http') || !baseTrim ? path : `${baseTrim}/${rel}`;
 
   const defaultHeaders = {
     Accept: 'application/json',
@@ -251,7 +268,23 @@ const auth = {
     return { ok: true };
   },
 
-  getProfile: async () => safeFetch('/api/users/me', { method: 'GET' }),
+  // Backend exposes GET /api/auth/me for current user (README)
+  getProfile: async () => safeFetch('/api/auth/me', { method: 'GET' }),
+  update: async (payload) => {
+    // Supports updating profile fields and password via backend's /api/auth/update
+    // Will send FormData if files present, else JSON
+    if (payload && Object.values(payload).some((v) => v instanceof File)) {
+      // Map avatar/profile image keys to backend expected 'profileImage'
+      const fd = new FormData();
+      const copy = { ...payload };
+      if (copy.avatarFile) { fd.append('profileImage', copy.avatarFile); delete copy.avatarFile; }
+      if (copy.profileImageFile) { fd.append('profileImage', copy.profileImageFile); delete copy.profileImageFile; }
+      // Append remaining fields
+      buildFormData(copy, fd);
+      return safeFetch('/api/auth/update', { method: 'PUT', body: fd });
+    }
+    return safeFetch('/api/auth/update', { method: 'PUT', body: payload });
+  },
 };
 
 const users = {
@@ -269,6 +302,18 @@ const users = {
     return safeFetch(`/api/users/${id}`, { method: 'PUT', body: payload });
   },
   delete: async (id) => safeFetch(`/api/users/${id}`, { method: 'DELETE' }),
+  updateMe: async (payload) => {
+    if (payload && Object.values(payload).some((v) => v instanceof File)) {
+      // Backend expects 'avatar' for user image
+      const fd = new FormData();
+      const copy = { ...payload };
+      if (copy.avatarFile) { fd.append('avatar', copy.avatarFile); delete copy.avatarFile; }
+      if (copy.profileImageFile) { fd.append('avatar', copy.profileImageFile); delete copy.profileImageFile; }
+      buildFormData(copy, fd);
+      return safeFetch(`/api/users/me`, { method: 'PUT', body: fd });
+    }
+    return safeFetch(`/api/users/me`, { method: 'PUT', body: payload });
+  },
 };
 
 const posts = {
@@ -278,18 +323,40 @@ const posts = {
     // payload can include images/files
     if (payload && payload._useFormData !== false) {
       const fd = buildFormData(payload);
-      return safeFetch('/api/posts', { method: 'POST', body: fd });
+      const res = await safeFetch('/api/posts', { method: 'POST', body: fd });
+      if (res.ok) {
+        try { emit('postCreated', res.data); } catch (_) {}
+      }
+      return res;
     }
-    return safeFetch('/api/posts', { method: 'POST', body: payload });
+    const res = await safeFetch('/api/posts', { method: 'POST', body: payload });
+    if (res.ok) {
+      try { emit('postCreated', res.data); } catch (_) {}
+    }
+    return res;
   },
   update: async (id, payload) => {
     if (payload && payload._useFormData !== false) {
       const fd = buildFormData(payload);
-      return safeFetch(`/api/posts/${id}`, { method: 'PUT', body: fd });
+      const res = await safeFetch(`/api/posts/${id}`, { method: 'PUT', body: fd });
+      if (res.ok) {
+        try { emit('postUpdated', { id, post: res.data }); } catch (_) {}
+      }
+      return res;
     }
-    return safeFetch(`/api/posts/${id}`, { method: 'PUT', body: payload });
+    const res = await safeFetch(`/api/posts/${id}`, { method: 'PUT', body: payload });
+    if (res.ok) {
+      try { emit('postUpdated', { id, post: res.data }); } catch (_) {}
+    }
+    return res;
   },
-  delete: async (id) => safeFetch(`/api/posts/${id}`, { method: 'DELETE' }),
+  delete: async (id) => {
+    const res = await safeFetch(`/api/posts/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      try { emit('postDeleted', { id }); } catch (_) {}
+    }
+    return res;
+  },
   likePost: async (id) => safeFetch(`/api/posts/${id}/like`, { method: 'PUT' }),
 };
 
@@ -301,12 +368,32 @@ const comments = {
     // payload: { text, imageFile? }
     if (payload?.imageFile) {
       const fd = buildFormData(payload);
-      return safeFetch(`/api/posts/${postId}/comments`, { method: 'POST', body: fd });
+      const res = await safeFetch(`/api/posts/${postId}/comments`, { method: 'POST', body: fd });
+      if (res.ok) {
+        try { emit('new_comment', { postId, comment: res.data }); } catch (_) {}
+      }
+      return res;
     }
-    return safeFetch(`/api/posts/${postId}/comment`, { method: 'POST', body: payload });
+    const res = await safeFetch(`/api/posts/${postId}/comment`, { method: 'POST', body: payload });
+    if (res.ok) {
+      try { emit('new_comment', { postId, comment: res.data }); } catch (_) {}
+    }
+    return res;
   },
-  edit: async (postId, commentId, payload) => safeFetch(`/api/posts/${postId}/comments/${commentId}`, { method: 'PUT', body: payload }),
-  delete: async (postId, commentId) => safeFetch(`/api/posts/${postId}/comments/${commentId}`, { method: 'DELETE' }),
+  edit: async (postId, commentId, payload) => {
+    const res = await safeFetch(`/api/posts/${postId}/comments/${commentId}`, { method: 'PUT', body: payload });
+    if (res.ok) {
+      try { emit('commentEdited', { postId, commentId, comment: res.data }); } catch (_) {}
+    }
+    return res;
+  },
+  delete: async (postId, commentId) => {
+    const res = await safeFetch(`/api/posts/${postId}/comments/${commentId}`, { method: 'DELETE' });
+    if (res.ok) {
+      try { emit('commentDeleted', { postId, commentId }); } catch (_) {}
+    }
+    return res;
+  },
 };
 
 const chats = {
@@ -320,11 +407,30 @@ const messages = {
   list: async (chatId) => safeFetch(`/api/messages/${chatId}`, { method: 'GET' }),
   send: async (chatId, payload) => {
     // payload may contain text and optional files
-    if (payload?.files) {
-      const fd = buildFormData(payload);
-      return safeFetch(`/api/messages/${chatId}`, { method: 'POST', body: fd });
+    if (payload && Object.values(payload).some((v) => v instanceof File)) {
+      // Backend expects single file under 'media'
+      const fd = new FormData();
+      const copy = { ...payload };
+      if (copy.mediaFile) { fd.append('media', copy.mediaFile); delete copy.mediaFile; }
+      if (copy.file) { fd.append('media', copy.file); delete copy.file; }
+      if (copy.files && Array.isArray(copy.files)) {
+        // pick first as media (backend spec suggests single image upload)
+        const first = copy.files.find((f) => f instanceof File);
+        if (first) fd.append('media', first);
+        delete copy.files;
+      }
+      buildFormData(copy, fd);
+      const res = await safeFetch(`/api/messages/${chatId}`, { method: 'POST', body: fd });
+      if (res.ok) {
+        try { emit('newMessage', { chatId, message: res.data }); } catch (_) {}
+      }
+      return res;
     }
-    return safeFetch(`/api/messages/${chatId}`, { method: 'POST', body: payload });
+    const res = await safeFetch(`/api/messages/${chatId}`, { method: 'POST', body: payload });
+    if (res.ok) {
+      try { emit('newMessage', { chatId, message: res.data }); } catch (_) {}
+    }
+    return res;
   },
 };
 

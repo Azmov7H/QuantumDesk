@@ -8,10 +8,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert } from "@/components/ui/alert";
+
+
+
 
 export default function ChatListPage() {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const router = useRouter();
 
@@ -20,13 +26,14 @@ export default function ChatListPage() {
   // ---------------------------
   useEffect(() => {
     const fetchChats = async () => {
+      setError("");
       try {
         const res = await api.chats.list();
-        if (res.ok) setChats(Array.isArray(res.data) ? res.data : []);
-        else setChats([]);
+        if (!res.ok) throw new Error(res.error || "Failed to load chats");
+        setChats(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
-        console.error("❌ Fetch chats error:", err);
         setChats([]);
+        setError("Failed to load chats. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -58,7 +65,25 @@ export default function ChatListPage() {
     chat.user?.username?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <div className="p-4 text-white">Loading chats...</div>;
+  if (loading) return <div className="p-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {[...Array(6)].map((_, i) => (
+      <Card key={i} className="p-4"><Skeleton className="h-6 w-1/2 mb-2" /><Skeleton className="h-6 w-3/4" /></Card>
+    ))}
+  </div>;
+
+  if (error) return (
+    <div className="p-4">
+      <Alert variant="destructive" title="Error">{error}</Alert>
+      <div className="mt-3">
+        <Button onClick={() => { setLoading(true); setError(""); (async () => {
+          const res = await api.chats.list();
+          if (res.ok) setChats(Array.isArray(res.data) ? res.data : []);
+          else setError("Failed to load chats. Please try again.");
+          setLoading(false);
+        })(); }}>Retry</Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex h-[90vh] w-full p-4">

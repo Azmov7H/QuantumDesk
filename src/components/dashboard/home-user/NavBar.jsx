@@ -8,6 +8,8 @@ import { Menu, PlusCircle, MessageSquare } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
+
 
 import NotificationBell from "@/components/notifications/page";
 import Logo from "@/components/landing/Logo";
@@ -17,40 +19,33 @@ export default function Navbar() {
   const [error, setError] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const token =
-      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+useEffect(() => {
+  let mounted = true;
 
-    // لو مفيش توكن، المستخدم يشتغل كـ "ضيف"
-    if (!token) {
-      setProfile({
-        username: "Guest",
-        _id: "guest",
-        profileImage: "/default-avatar.png",
-      });
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to load profile");
-        const data = await res.json();
-        setProfile(data);
-      } catch (err) {
-        console.error(err);
+  const fetchProfile = async () => {
+    try {
+      const res = await api.auth.getProfile(); // يستخدم api.js مباشرة
+      if (!res.ok) throw new Error(res.error || "Failed to load profile");
+      
+      if (mounted) setProfile(res.data);
+    } catch (err) {
+      console.error(err);
+      if (mounted) {
+        // لو فشل أو مفيش توكن => Guest
         setProfile({
           username: "Guest",
           _id: "guest",
           profileImage: "/default-avatar.png",
         });
       }
-    };
+    }
+  };
 
-    fetchProfile();
-  }, []);
+  fetchProfile();
+
+  return () => { mounted = false; };
+}, []);
+
 
   if (error)
     return <div className="text-red-500 px-4">Error: {error}</div>;

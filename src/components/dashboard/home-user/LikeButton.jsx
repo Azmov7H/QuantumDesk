@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AiTwotoneLike } from "react-icons/ai";
 import api from "@/lib/api";
+import { useDashboard } from "@/context/DashboardContext";
 
 export default function LikeButton({ postId, initialLikes = 0 }) {
   const [likes, setLikes] = useState(initialLikes);
   const [optimistic, setOptimistic] = useState(false);
+  const { currentUserId } = useDashboard?.() || {};
 
   // -----------------------------
   // WebSocket subscription
@@ -46,6 +48,9 @@ export default function LikeButton({ postId, initialLikes = 0 }) {
         setLikes((l) => l - 1);
         setOptimistic(false);
         console.error("Like failed:", res.error);
+      } else if (currentUserId) {
+        // بثّ اختياري لو السيرفر لا يبث
+        try { api.emit("postLiked", { postId, likes: likes + 1, by: currentUserId }); } catch {}
       }
     } catch (err) {
       // rollback on network/socket error

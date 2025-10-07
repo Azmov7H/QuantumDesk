@@ -1,17 +1,17 @@
 import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import LikeButton from "@/components/dashboard/home-user/LikeButton";
-import CommentsSection from "./CommentsSection";
+import dynamic from "next/dynamic";
+const CommentsSection = dynamic(() => import("./CommentsSection"), { ssr: false });
 import Image from "next/image";
-
-const API_BASE = process.env.NEXT_PUBLIC_URL_API;
+import api from "@/lib/api";
 
 /* ──────────────── 📦 Fetch Post ──────────────── */
 async function getPost(id) {
   try {
-    const res = await fetch(`${API_BASE}/posts/${id}`, { cache: "no-store" });
+    const res = await api.posts.get(id);
     if (!res.ok) return null;
-    return res.json();
+    return res.data;
   } catch (err) {
     console.error("❌ Fetch post error:", err);
     return null;

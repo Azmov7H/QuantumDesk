@@ -1,60 +1,37 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import api from '@/lib/api'; // ✅ الملف الرئيسي للـ REST API
+import api from '@/lib/api';
 
-export default function UserProfile() {
-  const { id } = useParams();
-  const [userData, setUserData] = useState(null);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await api.users.get(id);
-        if (res && res.data) {
-          setUserData(res.data);
-          setIsFollowing(res.data.isFollowing || false);
-        }
-      } catch (error) {
-        console.error('❌ Error fetching user:', error);
-        toast.error('حدث خطأ أثناء تحميل البيانات');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, [id]);
-
-  const handleFollow = async () => {
-    try {
-      const res = await api.users.follow(id);
-      if (res?.success) {
-        setIsFollowing(!isFollowing);
-        toast.success(isFollowing ? 'تم إلغاء المتابعة' : 'تمت المتابعة بنجاح');
-      }
-    } catch (error) {
-      console.error('❌ Follow error:', error);
-      toast.error('فشل تنفيذ العملية');
-    }
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const res = await api.users.get(id);
+  const user = res?.ok ? res.data : null;
+  return {
+    title: user ? `${user.username} | QuantumLeap` : 'User Not Found | QuantumLeap',
+    description: user?.bio || 'User profile on QuantumLeap.',
+    openGraph: user ? {
+      title: user.username,
+      description: user.bio || 'User profile',
+      images: user.profileImage ? [{ url: user.profileImage, width: 1200, height: 630, alt: user.username }] : [],
+    } : {},
   };
+}
 
-  if (loading) return <p className="text-center mt-10">جارٍ التحميل...</p>;
-  if (!userData) return <p className="text-center mt-10">المستخدم غير موجود</p>;
+export default async function UserProfile({ params }) {
+  const { id } = await params;
+  const res = await api.users.get(id);
+  const userData = res?.ok ? res.data : null;
+  if (!userData) return notFound();
 
   return (
     <div className="flex justify-center items-center mt-10">
       <Card className="w-full max-w-2xl p-6 shadow-md rounded-2xl">
         <CardContent className="flex flex-col items-center text-center">
           <Avatar className="w-24 h-24 mb-3">
-            <AvatarImage src={userData.profileImage} alt={userData.username} />
+            <AvatarImage src={userData.profileImage || '/default-avatar.png'} alt={userData.username} />
             <AvatarFallback>{userData.username?.charAt(0)}</AvatarFallback>
           </Avatar>
 
@@ -64,31 +41,13 @@ export default function UserProfile() {
 
           <div className="flex gap-3 mb-4">
             {userData.socialLinks?.facebook && (
-              <a
-                href={userData.socialLinks.facebook}
-                target="_blank"
-                className="text-blue-600 hover:underline"
-              >
-                Facebook
-              </a>
+              <a href={userData.socialLinks.facebook} target="_blank" className="text-blue-600 hover:underline">Facebook</a>
             )}
             {userData.socialLinks?.linkedin && (
-              <a
-                href={userData.socialLinks.linkedin}
-                target="_blank"
-                className="text-blue-500 hover:underline"
-              >
-                LinkedIn
-              </a>
+              <a href={userData.socialLinks.linkedin} target="_blank" className="text-blue-500 hover:underline">LinkedIn</a>
             )}
             {userData.socialLinks?.whatsapp && (
-              <a
-                href={`https://wa.me/${userData.socialLinks.whatsapp}`}
-                target="_blank"
-                className="text-green-600 hover:underline"
-              >
-                WhatsApp
-              </a>
+              <a href={`https://wa.me/${userData.socialLinks.whatsapp}`} target="_blank" className="text-green-600 hover:underline">WhatsApp</a>
             )}
           </div>
 
@@ -106,14 +65,8 @@ export default function UserProfile() {
           </div>
 
           <div className="flex gap-3">
-            <Button onClick={handleFollow} variant={isFollowing ? 'secondary' : 'default'}>
-              {isFollowing ? 'إلغاء المتابعة' : 'متابعة'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => (window.location.href = `/chat/${userData._id}`)}
-            >
-              فتح الشات
+            <Button asChild>
+              <a href={`/dashboard/chat/${userData._id}`}>فتح الشات</a>
             </Button>
           </div>
         </CardContent>

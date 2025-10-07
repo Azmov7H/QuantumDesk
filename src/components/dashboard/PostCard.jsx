@@ -19,10 +19,12 @@ export default function PostCard({
     <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 shadow-lg text-white flex flex-col hover:scale-105 transition-transform duration-300">
       {/* Author Info */}
       <div className="flex items-center gap-3 mb-4">
-        <img
+        <Image
           src={post.author?.profileImage || "/default-avatar.png"}
           alt={post.author?.username || "Unknown"}
-          className="w-10 h-10 rounded-full object-cover"
+          width={40}
+          height={40}
+          className="rounded-full object-cover"
         />
         <Link href={`/users/${post.author?._id}`} className="font-bold hover:underline text-blue-300">
           {post.author?.username || "Unknown"}
