@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
-import { updatePreferences } from "@/lib/api"
+import api from "@/lib/api"
+import { Button } from "@/components/ui/button"
 
 export default function PreferencesForm() {
   const [lang, setLang] = useState("en")
@@ -8,8 +9,9 @@ export default function PreferencesForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await updatePreferences({ lang, theme })
-    alert("Preferences saved!")
+    const res = await api.auth.update({ lang, theme })
+    if (res.ok) alert("Preferences saved!")
+    else alert(res.error || "Failed to save preferences")
   }
 
   return (
@@ -40,9 +42,9 @@ export default function PreferencesForm() {
           </select>
         </div>
 
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
+        <Button type="submit" variant="default">
           Save Preferences
-        </button>
+        </Button>
       </form>
     </div>
   )

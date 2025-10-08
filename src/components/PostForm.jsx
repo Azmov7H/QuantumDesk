@@ -1,5 +1,8 @@
 "use client";
 
+
+
+import Image from "next/image";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -7,21 +10,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import api from "@/lib/api";
 
-export default function PostForm({ editPost, onSuccess }) {
+
+
+export default function PostForm({ editPost, onSuccess, profile }) {
   const [title, setTitle] = useState("");
-  const [abstract, setAbstract] = useState("");
+  const [summary, setAbstract] = useState("");
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [api, setApi] = useState("");
-
-  /** Set API base on mount */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setApi(process.env.NEXT_PUBLIC_BASE_URL);
-  }, []);
 
   /** Populate form if editing */
   useEffect(() => {
@@ -42,67 +41,68 @@ export default function PostForm({ editPost, onSuccess }) {
   }, []);
 
   /** Submit or update post */
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      if (!api) return;
-      setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log("🟢 handleSubmit triggered");
 
-      try {
-        const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        if (!token) throw new Error("You must login first");
+  if (!title || !summary || !content) {
+    return toast.error("All fields are required.");
+  }
 
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("summary", abstract);
-        formData.append("content", content);
-        if (image instanceof File) formData.append("image", image);
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return toast.error("You must be logged in to publish a post.");
+  }
 
-        const url = editPost ? `${api}/api/posts/${editPost._id}` : `${api}/api/posts`;
-        const res = await fetch(url, {
-          method: editPost ? "PUT" : "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
+  try {
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("summary", summary);
+    formData.append("content", content);
+    if (image instanceof File) {
+      formData.append("image", image);
+    }
 
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.msg || "Failed to submit post");
-        }
+    console.log("📤 Sending form data to backend...");
 
-        const data = await res.json();
-        toast.success(editPost ? "Post updated!" : "Post created!");
-        onSuccess?.(data);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/posts`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        // 👇 مهم جدًا: لا تضف Content-Type يدويًا
+      },
+      body: formData,
+    });
 
-        if (!editPost) resetForm();
-      } catch (err) {
-        console.error(err);
-        toast.error(err.message || "Error submitting post");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [title, abstract, content, image, editPost, api, onSuccess]
-  );
+    const data = await res.json();
+    console.log("📦 Response data:", data);
+
+    if (res.ok) {
+      toast.success("✅ Post published successfully!");
+      resetForm();
+      onSuccess?.(data);
+    } else {
+      toast.error(`❌ Error: ${data.msg || res.statusText}`);
+    }
+  } catch (err) {
+    console.error("🚨 Submit Error:", err);
+    toast.error("🚨 Network or server error!");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   /** Delete post */
   const handleDelete = useCallback(async () => {
-    if (!editPost || !api) return;
+    if (!editPost) return;
     if (!confirm("Are you sure you want to delete this post?")) return;
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${api}/api/posts/${editPost._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.msg || "Failed to delete post");
-      }
-
+      await api.posts.delete(editPost._id);
       toast.success("Post deleted!");
       onSuccess?.(null);
     } catch (err) {
@@ -111,7 +111,7 @@ export default function PostForm({ editPost, onSuccess }) {
     } finally {
       setLoading(false);
     }
-  }, [editPost, api, onSuccess]);
+  }, [editPost, onSuccess]);
 
   /** Reset form after new post */
   const resetForm = () => {
@@ -143,11 +143,11 @@ export default function PostForm({ editPost, onSuccess }) {
           </FormField>
 
           {/* Abstract */}
-          <FormField label="Abstract" id="abstract">
+          <FormField label="Abstract" id="summary">
             <Textarea
-              id="abstract"
+              id="summary"
               placeholder="Short summary..."
-              value={abstract}
+              value={summary}
               onChange={(e) => setAbstract(e.target.value)}
               rows={4}
               required
@@ -186,7 +186,9 @@ export default function PostForm({ editPost, onSuccess }) {
         <Label>Feature Image</Label>
         <input type="file" onChange={handleImageChange} className="text-sm" />
         {preview && (
-          <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-md mt-2 border border-zinc-700" />
+          <div className="relative w-full h-48 mt-2 border border-zinc-700 rounded-md overflow-hidden">
+            <Image src={preview} alt="Preview" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
+          </div>
         )}
       </div>
     </Card>

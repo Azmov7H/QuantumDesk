@@ -9,7 +9,7 @@ import "../globals.css";
 export default function RootLayout({ children }) {
   return (
 
-    <dev className="antialiased flex flex-col min-h-screen bg-[#172633] text-white font-mono">
+    <div className="antialiased flex flex-col min-h-screen bg-[#172633] text-white font-mono">
       {/* Navbar */}
       <Navbar />
 
@@ -21,6 +21,6 @@ export default function RootLayout({ children }) {
 
       {/* Footer */}
       <Footer />
-    </dev>
+    </div>
   );
 }

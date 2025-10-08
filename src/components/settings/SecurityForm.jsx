@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
-import { updatePassword } from "@/lib/api"
+import api from "@/lib/api"
+import { Button } from "@/components/ui/button"
 
 export default function SecurityForm() {
   const [oldPass, setOldPass] = useState("")
@@ -8,8 +9,9 @@ export default function SecurityForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await updatePassword(oldPass, newPass)
-    alert("Password updated!")
+    const res = await api.auth.update({ oldPassword: oldPass, password: newPass })
+    if (res.ok) alert("Password updated!")
+    else alert(res.error || "Failed to update password")
   }
 
   return (
@@ -34,9 +36,7 @@ export default function SecurityForm() {
             onChange={(e) => setNewPass(e.target.value)}
           />
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
-          Update Password
-        </button>
+        <Button type="submit">Update Password</Button>
       </form>
     </div>
   )

@@ -1,18 +1,23 @@
 "use client"
 import { useState, useEffect } from "react"
-import { getUser, updateUser } from "@/lib/api"
+import api from "@/lib/api"
+import { Button } from "@/components/ui/button"
 
 export default function ProfileInfo() {
   const [user, setUser] = useState({ name: "", email: "" })
 
   useEffect(() => {
-    getUser().then(setUser)
+    (async () => {
+      const res = await api.auth.getProfile()
+      if (res.ok) setUser({ name: res.data.username || "", email: res.data.email || "" })
+    })()
   }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await updateUser(user)
-    alert("Profile updated!")
+    const res = await api.users.updateMe({ username: user.name, email: user.email })
+    if (res.ok) alert("Profile updated!")
+    else alert(res.error || "Failed to update profile")
   }
 
   return (
@@ -37,9 +42,7 @@ export default function ProfileInfo() {
           />
         </div>
 
-        <button className="px-4 py-2 bg-blue-600 text-white rounded">
-          Save Changes
-        </button>
+        <Button type="submit">Save Changes</Button>
       </form>
     </div>
   )

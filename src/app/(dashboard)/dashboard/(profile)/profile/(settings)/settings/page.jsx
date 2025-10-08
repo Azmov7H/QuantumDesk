@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,14 +23,12 @@ export default function ProfileSettingsPage() {
 
   // Fetch profile on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = api.token.get();
     if (!token) return;
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    api.auth.getProfile().then((res) => {
+      if (!res.ok) return;
+      const data = res.data;
         setProfile(data);
         setUsername(data.username || "");
         setEmail(data.email || "");
@@ -38,8 +37,7 @@ export default function ProfileSettingsPage() {
         setLinkedin(data.social?.linkedin || "");
         setWhatsapp(data.social?.whatsapp || "");
         setPreview(data.avatar?.url || null);
-      })
-      .catch((err) => console.error(err));
+    }).catch((err) => console.error(err));
   }, []);
 
   // Handle profile update
@@ -47,30 +45,18 @@ export default function ProfileSettingsPage() {
     e.preventDefault();
     setLoading(true);
 
-    const token = localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("email", email);
-    formData.append("bio", bio);
-    formData.append("facebook", facebook);
-    formData.append("linkedin", linkedin);
-    formData.append("whatsapp", whatsapp);
-    if (profileImage) formData.append("avatar", profileImage);
+    const payload = { username, email, bio, facebook, linkedin, whatsapp };
+    if (profileImage) payload.avatarFile = profileImage;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/users/me`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const data = await res.json();
+      const res = await api.users.updateMe(payload);
       setLoading(false);
 
       if (res.ok) {
-        setProfile(data.user);
+        setProfile(res.data?.user || { ...profile, username, email, bio });
         toast({ title: "Profile updated successfully!", variant: "success" });
       } else {
-        toast({ title: "Update failed", description: data.msg, variant: "destructive" });
+        toast({ title: "Update failed", description: res.error || "", variant: "destructive" });
       }
     } catch (err) {
       setLoading(false);

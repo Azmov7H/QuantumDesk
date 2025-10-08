@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import api from "@/lib/api";
 
 export default function SecuritySettingsPage() {
   const [password, setPassword] = useState("");
@@ -14,42 +16,18 @@ const handleChangePassword = async (e) => {
   setLoading(true);
 
   try {
-    const token = localStorage.getItem("token");
-    if (!token) throw new Error("Unauthorized");
-
-    const formData = new FormData();
-    formData.append("password", password);
-
-    const res = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/update`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-
-    const data = await res.json();
+    const res = await api.auth.update({ password });
     setLoading(false);
 
     if (res.ok) {
       setPassword("");
-      toast({
-        title: "Password updated!",
-        description: "Your password has been changed successfully.",
-        variant: "success",
-      });
+      toast.success("Password updated!");
     } else {
-      toast({
-        title: "Error",
-        description: data.msg || "Something went wrong.",
-        variant: "destructive",
-      });
+      toast.error(res.error || "Something went wrong.");
     }
   } catch (err) {
     setLoading(false);
-    toast({
-      title: "Error",
-      description: err.message || "Something went wrong.",
-      variant: "destructive",
-    });
+    toast.error(err.message || "Something went wrong.");
   }
 };
 

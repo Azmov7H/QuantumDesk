@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import api from "@/lib/api";
+import { useDashboard } from "@/context/DashboardContext";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [hydrated, setHydrated] = useState(false);
   const router = useRouter();
+  const { currentUserId } = useDashboard?.() || {};
 
   useEffect(() => {
     setHydrated(true);
@@ -41,13 +43,15 @@ export default function NotificationBell() {
     api.initRealtime().then(() => {
       // 3️⃣ الاشتراك في أي إشعار جديد
       const unsub = api.subscribe("receive_notification", (notif) => {
+        // تجاهل الإشعار لو صادر منّي
+        if (notif?.fromUser?._id && currentUserId && notif.fromUser._id === currentUserId) return;
         setNotifications((prev) => [notif, ...prev]);
         setUnreadCount((prev) => prev + 1);
       });
 
       return () => unsub(); // تنظيف الاشتراك عند unmount
     });
-  }, []);
+  }, [currentUserId]);
 
   const markAllAsRead = async () => {
     const res = await api.notifications.markAllRead();

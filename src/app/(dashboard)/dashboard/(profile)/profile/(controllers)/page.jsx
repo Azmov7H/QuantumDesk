@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import api from "@/lib/api";
 import DashboardHeader from "@/components/dashboard/profiel-user/DashboardHeader";
 import DashboardStats from "@/components/dashboard/profiel-user/DashboardStats";
 import RecentActivity from "@/components/dashboard/profiel-user/RecentActivity";
@@ -16,22 +17,10 @@ export default function DashboardPage() {
   ];
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/auth/me`, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(async (res) => {
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem("token");
-          return null;
-        }
-        if (!res.ok) throw new Error("Failed to load profile");
-        return res.json();
-      })
-      .then((data) => {
-        if (data) setProfile(data);
+    api.auth.getProfile()
+      .then((res) => {
+        if (res.ok) setProfile(res.data);
+        else if (res.status === 401 || res.status === 403) localStorage.removeItem("token");
       })
       .catch((err) => {
         console.error("Profile fetch error:", err);
