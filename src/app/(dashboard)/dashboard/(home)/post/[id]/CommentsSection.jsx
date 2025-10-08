@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import api from "@/lib/api";
+import Link from "next/link";
 
 /* ──────────────── 💬 Comments Section ──────────────── */
 export default function CommentsSection({ postId, currentUser }) {
@@ -111,9 +112,9 @@ export default function CommentsSection({ postId, currentUser }) {
               </Avatar>
 
               <div className="flex flex-col bg-[#15202b] p-3 rounded-xl w-full">
-                <span className="text-sm font-semibold text-[#90adcb]">
+                <Link href={`/dashboard/users/${c.user?._id}`} className="text-sm font-semibold text-[#90adcb]">
                   {c.user?.username || "مستخدم"}
-                </span>
+                </Link>
                 <p className="text-sm text-white leading-snug break-words">
                   {c.content}
                 </p>

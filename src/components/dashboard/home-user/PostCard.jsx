@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "./LikeButton";
 import CommentsSection from "./CommentsSection";
@@ -43,6 +44,9 @@ export default function PostCard({ post, profile, commentUsers, setCommentUsers 
       {commentsVisible && (
         <CommentsSection post={post} profile={profile} commentUsers={commentUsers} setCommentUsers={setCommentUsers} />
       )}
+      <Link href={`/dashboard/post/${post._id}`}>
+      Show
+      </Link>
     </Card>
   );
 }

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import LikeButton from "@/components/dashboard/home-user/LikeButton";
 import dynamic from "next/dynamic";
-const CommentsSection = dynamic(() => import("./CommentsSection"), { ssr: false });
+const CommentsSection = dynamic(() => import("./CommentsSection"), { ssr: true });
 import Image from "next/image";
 import api from "@/lib/api";
 

@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,28 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
-export const metadata = {
-  title: "Users | QuantumLeap",
-  description: "Browse the users on QuantumLeap.",
-  openGraph: {
-    title: "Users | QuantumLeap",
-    description: "Discover users and connect.",
-    url: "https://quantum-desk.vercel.app/dashboard/users",
-    siteName: "QuantumDesk",
-    images: [
-      { url: "/og-image.png", width: 1200, height: 630, alt: "QuantumDesk" },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Users | QuantumDesk",
-    description: "Discover users and connect.",
-    images: ["/og-image.png"],
-  },
-  alternates: { canonical: "https://quantum-desk.vercel.app/dashboard/users" },
-};
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
