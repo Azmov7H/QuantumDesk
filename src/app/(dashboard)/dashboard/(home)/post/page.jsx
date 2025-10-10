@@ -2,6 +2,8 @@ import React from 'react'
 import api from "@/lib/api"
 import { Card, CardContent } from '@/components/ui/card'
 import Image from 'next/image'
+export const dynamic = "force-dynamic"
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
