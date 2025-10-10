@@ -28,7 +28,7 @@ export default function CommentsSection({ post, profile, commentUsers, setCommen
   };
 
   return (
-    <div className="flex flex-col gap-2 mt-2 max-h-64 overflow-y-auto">
+    <div className="flex flex-col w-max gap-2 mt-2 max-h-64 overflow-y-auto">
       {post.comments?.map((c, i) => {
         const userId = typeof c.user === "string" ? c.user : c.user?._id;
         const user = commentUsers[userId] || { username: "Unknown", profileImage: "/default-avatar.png" };

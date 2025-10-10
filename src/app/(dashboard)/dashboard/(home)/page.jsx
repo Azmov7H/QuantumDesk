@@ -100,8 +100,8 @@ export default function DashboardHome() {
     fetchData();
   }, []);
 
-  if (loading) return <div className="p-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {[...Array(6)].map((_, i) => (
+  if (loading) return <div className="p-8 grid  gap-6">
+    {[...Array(4)].map((_, i) => (
       <Card key={i} className="p-4">
         <Skeleton className="h-6 w-3/4 mb-2" />
         <Skeleton className="h-4 w-full mb-2" />
@@ -133,7 +133,7 @@ export default function DashboardHome() {
   );
 
   return (
-      <div className="p-8">
+      <div className="p-2 w-full flex flex-col items-center justify-center">
         {showWelcome && profile && (
           <Card className="bg-purple-700 text-white mb-8 p-6 shadow-lg">
             <CardContent>
@@ -148,7 +148,7 @@ export default function DashboardHome() {
           <p className="text-[#c0c5d0]">Here’s what’s happening with your projects today.</p>
         </header>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid w-full gap-6">
           {posts.map(post => (
             <PostCard key={post._id} post={post} profile={profile} commentUsers={commentUsers} setCommentUsers={setCommentUsers} />
           ))}

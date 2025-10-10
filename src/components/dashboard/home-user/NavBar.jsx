@@ -13,6 +13,9 @@ import api from "@/lib/api";
 
 import NotificationBell from "@/components/notifications/page";
 import Logo from "@/components/landing/Logo";
+import sNavbar from "./sNavbar";
+import LogoutButton from "@/components/LogoutButton";
+
 
 export default function Navbar() {
   const [profile, setProfile] = useState(null);
@@ -24,14 +27,33 @@ useEffect(() => {
 
   const fetchProfile = async () => {
     try {
-      const res = await api.auth.getProfile(); // يستخدم api.js مباشرة
-      if (!res.ok) throw new Error(res.error || "Failed to load profile");
-      
+      const res = await api.auth.getProfile();
+
+      if (!res.ok) {
+        // في حالة Unauthorized نحذف التوكن ونخلي المستخدم Guest
+        if (res.status === 401 || res.error?.toLowerCase() === "unauthorized") {
+          localStorage.removeItem("token");
+        }
+
+        if (mounted) {
+          setProfile({
+            username: "Guest",
+            _id: "guest",
+            profileImage: "/default-avatar.png",
+          });
+        }
+        return;
+      }
+
+      // ✅ في حالة النجاح
       if (mounted) setProfile(res.data);
+
     } catch (err) {
-      console.error(err);
+      console.warn("⚠️ User not authorized or token expired.");
+
       if (mounted) {
-        // لو فشل أو مفيش توكن => Guest
+        // في حالة أي خطأ غير متوقع
+        localStorage.removeItem("token");
         setProfile({
           username: "Guest",
           _id: "guest",
@@ -43,15 +65,15 @@ useEffect(() => {
 
   fetchProfile();
 
-  return () => { mounted = false; };
+  return () => {
+    mounted = false;
+  };
 }, []);
 
 
   if (error)
     return <div className="text-red-500 px-4">Error: {error}</div>;
-
-  if (!profile)
-    return <div className="text-gray-400 px-4">Loading...</div>;
+  if (!profile) return (sNavbar())
 
   const isGuest = profile._id === "guest";
 
@@ -113,6 +135,10 @@ useEffect(() => {
             </AvatarFallback>
           </Avatar>
         </Link>
+
+        {!isGuest && (
+          <LogoutButton />
+        )}
 
         {/* Mobile Menu Toggle */}
         {!isGuest && (
