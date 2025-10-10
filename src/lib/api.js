@@ -96,8 +96,13 @@ function sleep(ms) {
 // - parses JSON when possible, otherwise returns text
 // - auto-handles 401 by clearing token + redirect
 // -----------------------------
-async function safeFetch(path, opts = {}, { retries = config.retry.retries } = {}) {
-  // Build base safely even if NEXT_PUBLIC_API_BASE is undefined
+
+async function safeFetch(path, opts = {}, options = {}) {
+  const {
+    retries = config.retry?.retries || 2,
+    handle401 = false, // 👈 تحكم في الـ redirect التلقائي عند Unauthorized
+  } = options;
+
   const base = (config.baseURL || DEFAULT_BASE || getGuessedBase() || '').toString();
   const baseTrim = base ? base.replace(/\/$/, '') : '';
   const rel = path.replace(/^\//, '');
@@ -108,11 +113,18 @@ async function safeFetch(path, opts = {}, { retries = config.retry.retries } = {
     ...authHeader(),
   };
 
-  // If body is FormData we must NOT set content-type
-  const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+  const isForm =
+    typeof FormData !== 'undefined' && opts.body instanceof FormData;
+  const headers = opts.headers
+    ? { ...defaultHeaders, ...opts.headers }
+    : defaultHeaders;
 
-  const headers = opts.headers ? { ...defaultHeaders, ...opts.headers } : defaultHeaders;
-  if (!isForm && opts.body && !(opts.body instanceof URLSearchParams) && typeof opts.body === 'object') {
+  if (
+    !isForm &&
+    opts.body &&
+    !(opts.body instanceof URLSearchParams) &&
+    typeof opts.body === 'object'
+  ) {
     headers['Content-Type'] = 'application/json';
     opts.body = JSON.stringify(opts.body);
   }
@@ -120,72 +132,73 @@ async function safeFetch(path, opts = {}, { retries = config.retry.retries } = {
   let attempt = 0;
   while (true) {
     try {
-      const res = await fetch(url, { ...opts, headers, credentials: 'include' });
+      const res = await fetch(url, {
+        ...opts,
+        headers,
+        credentials: 'include',
+      });
+
       const status = res.status;
 
-      // Auto 401 handling: clear token and redirect to login path
-      if (status === 401) {
+      // ✅ التحكم في Redirect عند 401
+      if (status === 401 && handle401) {
         tokenStore.clear();
-        // we try to redirect only on client
         if (typeof window !== 'undefined') {
-          // append `?redirect=` so we can return after login
-          const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
-          window.location.assign(`${config.loginRedirectTo}?redirect=${redirectTo}`);
+          const redirectTo = encodeURIComponent(
+            window.location.pathname + window.location.search
+          );
+          window.location.assign(
+            `${config.loginRedirectTo || '/dashboard'}?redirect=${redirectTo}`
+          );
         }
         return { ok: false, status, data: null, error: 'unauthorized' };
       }
 
-      // Parse body
       const contentType = res.headers.get('Content-Type') || '';
       let data = null;
       if (contentType.includes('application/json')) {
         try {
           data = await res.json();
-        } catch (e) {
+        } catch {
           data = null;
         }
       } else {
-        // try text
         try {
           data = await res.text();
-        } catch (e) {
+        } catch {
           data = null;
         }
       }
 
       if (!res.ok) {
-        // Retry on server errors
         if ([502, 503, 504].includes(status) && attempt < retries) {
           attempt += 1;
           const delay = config.retry.baseDelayMs * 2 ** (attempt - 1);
-          await sleep(delay);
+          await new Promise((r) => setTimeout(r, delay));
           continue;
         }
-
-        return { ok: false, status, data, error: data?.message || res.statusText || 'fetch_error' };
+        return {
+          ok: false,
+          status,
+          data,
+          error: data?.message || res.statusText || 'fetch_error',
+        };
       }
 
       return { ok: true, status, data, error: null };
     } catch (err) {
-      // Network error / CORS or offline
-      const isNetworkErr = err instanceof TypeError || err?.message === 'Failed to fetch';
-
-      // If CORS preflight blocked you'll often get a TypeError with little detail. Detect and surface
-      if (isNetworkErr && attempt === 0) {
-        // quick check: if OPTIONS would be required (non-GET and custom headers), hint to server config
-        if (opts.method && opts.method.toUpperCase() !== 'GET') {
-          console.error('Network error — this may be a CORS preflight problem. Ensure server sets Access-Control-Allow-Origin and handles OPTIONS.');
-        }
-      }
-
       if (attempt < retries) {
         attempt += 1;
         const delay = config.retry.baseDelayMs * 2 ** (attempt - 1);
-        await sleep(delay);
+        await new Promise((r) => setTimeout(r, delay));
         continue;
       }
-
-      return { ok: false, status: 0, data: null, error: err?.message || String(err) };
+      return {
+        ok: false,
+        status: 0,
+        data: null,
+        error: err?.message || String(err),
+      };
     }
   }
 }

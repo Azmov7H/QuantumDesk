@@ -5,6 +5,7 @@ import "../../../globals.css";
 import { Suspense } from "react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import sNavbar from "@/components/dashboard/home-user/sNavbar";
 export const metadata = {
   title: "Dashboard | QuantumLeap",
   description: "Overview of your posts, chats, and collaborations.",
@@ -24,7 +25,9 @@ export default function DashboardLayout({ children }) {
   return (
 
         <div className="flex flex-col min-h-screen bg-[#101a23]">
-          <Navbar />
+          
+            <Navbar />
+
           <main className="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 flex-col py-5">
             <Suspense fallback={
               <div className="p-8 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
