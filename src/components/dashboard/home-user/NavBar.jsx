@@ -136,9 +136,6 @@ useEffect(() => {
           </Avatar>
         </Link>
 
-        {!isGuest && (
-          <LogoutButton />
-        )}
 
         {/* Mobile Menu Toggle */}
         {!isGuest && (

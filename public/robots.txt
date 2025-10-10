@@ -1,9 +1,4 @@
 User-agent: *
 Allow: /
 
-Disallow: / chat
-Disallow: /profile/*
-Disallow: / newposts
-Disallow: /api/*
-
 Sitemap: https://quantum-desk.vercel.app/sitemap.xml
