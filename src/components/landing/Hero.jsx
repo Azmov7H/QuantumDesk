@@ -18,10 +18,10 @@ export default function Hero() {
 
         {/* Call-to-action buttons */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <Link href="/auth/login">
+          <Link href="/post">
             <Button className="bg-[#1A8CE5] text-white px-6 py-2 text-base">Explore Articles</Button>
           </Link>
-          <Link href="/about">
+          <Link href="/auth/login">
             <Button variant="outline" className="px-6 py-2 text-base border-white hover:bg-white/10">
               Join Now
             </Button>

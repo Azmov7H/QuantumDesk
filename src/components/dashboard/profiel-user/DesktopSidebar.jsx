@@ -3,6 +3,7 @@
 // DesktopSidebar.js
 import Link from "next/link";
 import { Home, FileText, Plus, MessageCircle, User, Settings } from "lucide-react";
+import LogoutButton from "@/components/LogoutButton";
 
 export default function DesktopSidebar() {
   const menuItems = [
@@ -26,7 +27,11 @@ export default function DesktopSidebar() {
             <item.icon className="w-5 h-5" />
             <span>{item.label}</span>
           </Link>
+         
+          
+    
         ))}
+        <LogoutButton />
       </div>
     </div>
   );
