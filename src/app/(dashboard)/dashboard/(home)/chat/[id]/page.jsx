@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import Image from "next/image";
 
 export default function ChatPage() {
   const { id: chatId } = useParams();
+  const router = useRouter();
+
+  const [me, setMe] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -18,6 +21,20 @@ export default function ChatPage() {
   const [socketConnected, setSocketConnected] = useState(false);
 
   const scrollRef = useRef(null);
+
+  // -------------------------
+  // Load current user
+  // -------------------------
+  useEffect(() => {
+    (async () => {
+      if (!api.token.exists()) {
+        router.push("/auth/login");
+        return;
+      }
+      const res = await api.auth.getProfile();
+      if (res.ok) setMe(res.data);
+    })();
+  }, [router]);
 
   // -------------------------
   // Fetch chat history
@@ -28,24 +45,24 @@ export default function ChatPage() {
     const res = await api.messages.list(chatId);
     if (res.ok) {
       setMessages(res.data || []);
-      const other = res.data.find(m => m.sender && m.sender._id !== api.token.get())?.sender;
+      const other = res.data.find(m => m.sender && m.sender._id !== me?._id)?.sender;
       if (other) setOtherUser(other);
     } else {
       console.error("Failed to fetch messages:", res.error);
       setMessages([]);
     }
     setLoading(false);
-  }, [chatId]);
+  }, [chatId, me]);
 
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    if (me) fetchMessages();
+  }, [fetchMessages, me]);
 
   // -------------------------
   // Initialize Realtime Socket
   // -------------------------
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !me) return;
 
     api.initRealtime().then(socket => {
       if (!socket) return;
@@ -55,10 +72,17 @@ export default function ChatPage() {
       const unsubConnect = api.subscribe("connect", () => setSocketConnected(true));
       const unsubDisconnect = api.subscribe("disconnect", () => setSocketConnected(false));
 
+      const unsubError = api.subscribe("connect_error", (err) => {
+        console.error("Socket error:", err);
+        setSocketConnected(false);
+      });
+
       const unsubNewMsg = api.subscribe("newMessage", msg => {
         if (msg.chatId !== chatId) return;
-        setMessages(prev => prev.some(m => m._id === msg._id) ? prev : [...prev, msg]);
-        if (msg.sender && msg.sender._id !== api.token.get()) setOtherUser(msg.sender);
+        setMessages(prev =>
+          prev.some(m => m._id === msg._id) ? prev : [...prev, msg]
+        );
+        if (msg.sender && msg.sender._id !== me?._id) setOtherUser(msg.sender);
       });
 
       // Join chat room
@@ -66,10 +90,13 @@ export default function ChatPage() {
 
       return () => {
         api.emit("leaveChat", chatId);
-        unsubConnect(); unsubDisconnect(); unsubNewMsg();
+        unsubConnect();
+        unsubDisconnect();
+        unsubNewMsg();
+        unsubError();
       };
     });
-  }, [chatId]);
+  }, [chatId, me]);
 
   // -------------------------
   // Scroll to bottom
@@ -89,7 +116,11 @@ export default function ChatPage() {
     const tempMsg = {
       _id: tempId,
       chat: chatId,
-      sender: { _id: "me", username: "You", profileImage: null },
+      sender: {
+        _id: me?._id,
+        username: me?.username || "You",
+        profileImage: me?.profileImage,
+      },
       content: text,
       createdAt: new Date().toISOString(),
       optimistic: true,
@@ -100,7 +131,9 @@ export default function ChatPage() {
 
     const res = await api.messages.send(chatId, { content: text });
     if (res.ok) {
-      setMessages(prev => prev.map(m => (m._id === tempId ? res.data : m)));
+      setMessages(prev =>
+        prev.map(m => (m._id === tempId ? res.data : m))
+      );
     } else {
       console.error("Failed to send message:", res.error);
       setMessages(prev => prev.filter(m => m._id !== tempId));
@@ -119,7 +152,9 @@ export default function ChatPage() {
             <div className="flex items-center gap-3">
               <Avatar src={otherUser?.profileImage} />
               <div>
-                <div className="text-white font-semibold">{otherUser?.username || "Conversation"}</div>
+                <div className="text-white font-semibold">
+                  {otherUser?.username || "Conversation"}
+                </div>
                 <div className="text-xs text-zinc-300">
                   {socketConnected
                     ? <span className="text-emerald-400">Connected</span>
@@ -134,19 +169,33 @@ export default function ChatPage() {
             <div className="flex flex-col gap-3 py-2">
               {messages.map(msg => {
                 const sender = msg.sender || {};
-                const isMe = sender._id === "me";
+                const isMe = sender._id === me?._id;
                 return (
-                  <div key={msg._id || msg.createdAt} className={`flex items-end gap-3 ${isMe ? "justify-end" : "justify-start"}`}>
+                  <div
+                    key={msg._id || msg.createdAt}
+                    className={`flex items-end gap-3 ${isMe ? "justify-end" : "justify-start"}`}
+                  >
                     {!isMe && <Avatar src={sender.profileImage} />}
-                    <div className={`rounded-2xl p-3 max-w-[72%] text-sm ${isMe ? "bg-blue-600 text-white" : "bg-zinc-800 text-white"}`} style={{ wordBreak: "break-word" }}>
-                      {!isMe && <div className="text-xs text-zinc-300 mb-1 font-semibold">{sender.username}</div>}
+                    <div
+                      className={`rounded-2xl p-3 max-w-[72%] text-sm ${isMe ? "bg-blue-600 text-white" : "bg-zinc-800 text-white"}`}
+                      style={{ wordBreak: "break-word" }}
+                    >
+                      {!isMe && (
+                        <div className="text-xs text-zinc-300 mb-1 font-semibold">
+                          {sender.username}
+                        </div>
+                      )}
                       <div>{msg.content}</div>
                       <div className="mt-1 text-[10px] opacity-60 text-right">
-                        {msg.createdAt && new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {msg.createdAt &&
+                          new Date(msg.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         {msg.optimistic && " • sending..."}
                       </div>
                     </div>
-                    {isMe && <Avatar src="/default-avatar.png" />}
+                    {isMe && <Avatar src={me?.profileImage || "/default-avatar.png"} />}
                   </div>
                 );
               })}
@@ -161,7 +210,12 @@ export default function ChatPage() {
               onChange={e => setNewMessage(e.target.value)}
               placeholder="Type a message..."
               className="flex-1 text-[#fff] rounded-xl"
-              onKeyDown={e => e.key === "Enter" && sendMessage()}
+              onKeyDown={e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
             />
             <Button onClick={sendMessage}>Send</Button>
           </div>
@@ -175,7 +229,13 @@ export default function ChatPage() {
 function Avatar({ src }) {
   return (
     <div className="rounded-full overflow-hidden bg-zinc-700 w-12 h-12 flex items-center justify-center">
-      <Image width={64} height={64} src={src || "/default-avatar.png"} alt="User" className="w-full h-full object-cover" />
+      <Image
+        width={64}
+        height={64}
+        src={src || "/default-avatar.png"}
+        alt="User"
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }

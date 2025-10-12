@@ -34,52 +34,7 @@ export default function CommentsSection({ postId, currentUser }) {
     return () => unsubscribe();
   }, [postId]);
 
-  /* ──────────────── إرسال تعليق ──────────────── */
-  const handleAddComment = async () => {
-    if (!text.trim() || loading) return;
-    setLoading(true);
 
-    // تعليق مؤقت
-    const tempId = `temp-${Date.now()}`;
-    const optimisticComment = {
-      _id: tempId,
-      content: text,
-      user: currentUser,
-      createdAt: new Date(),
-      pending: true,
-    };
-
-    setComments((prev) => [optimisticComment, ...prev]);
-    setText("");
-
-    // إرسال إلى API
-    const res = await api.addCommentAndEmit(postId, { text });
-
-    if (res.ok) {
-      // استبدال التعليق المؤقت بالحقيقي
-      setComments((prev) =>
-        prev.map((c) => (c._id === tempId ? res.data : c))
-      );
-    } else {
-      // فشل الإرسال
-      setComments((prev) =>
-        prev.map((c) =>
-          c._id === tempId ? { ...c, pending: false, error: res.error } : c
-        )
-      );
-      console.error("❌ فشل إرسال التعليق:", res.error);
-
-      // ✅ تصحيح الشرط — لأن الخطأ الحقيقي بيكون "Unauthorized"
-      if (res.error?.toLowerCase() === "unauthorized") {
-        toast.error("⚠️ You must be logged in to comment.");
-        localStorage.removeItem("token"); // حذف التوكن الحالي
-        const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.assign(`/auth/login?redirect=${redirectTo}`);
-      }
-    }
-
-    setLoading(false);
-  };
 
 
 
@@ -87,33 +42,6 @@ export default function CommentsSection({ postId, currentUser }) {
   return (
     <Suspense fallback={<Skeleton className="space-y-4 border-t border-[#223649] pt-6" />}>
       <div className="space-y-4 border-t border-[#223649] pt-6">
-        {/* 📝 إدخال تعليق */}
-        <div className="flex gap-2 items-center">
-          <Input
-            placeholder="اكتب تعليقك..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            className="bg-[#223649] text-white border-none focus:ring-2 focus:ring-[#3b82f6]"
-          />
-          <Button
-            onClick={handleAddComment}
-            disabled={loading}
-            className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
-          >
-            {loading ? "..." : "إرسال"}
-          </Button>
-
-          {/* 🔒 زر تسجيل الخروج */}
-          {currentUser && (
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="border-[#223649] text-gray-300 hover:bg-[#223649]"
-            >
-              تسجيل خروج
-            </Button>
-          )}
-        </div>
 
         {/* 💬 التعليقات */}
         <div className="space-y-3">

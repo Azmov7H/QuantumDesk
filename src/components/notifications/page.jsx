@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,40 +19,53 @@ import { useDashboard } from "@/context/DashboardContext";
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { currentUserId } = useDashboard?.() || {};
 
   useEffect(() => {
-    setHydrated(true);
+    let unsub; // للاحتفاظ بالـ unsubscribe
+    let mounted = true;
 
-    // 1️⃣ جلب الإشعارات عبر API
     const fetchNotifications = async () => {
-      const res = await api.notifications.list();
-      if (res.ok) {
-        setNotifications(res.data);
-        setUnreadCount(res.data.filter((n) => !n.read).length);
-      } else {
-        console.error("❌ Fetch notifications failed", res.error);
+      try {
+        const res = await api.notifications.list();
+        if (res.ok && Array.isArray(res.data)) {
+          if (!mounted) return;
+          setNotifications(res.data);
+          setUnreadCount(res.data.filter((n) => !n.read).length);
+        } else {
+          console.warn("⚠️ Failed to load notifications", res.error);
+        }
+      } catch (err) {
+        console.error("❌ Fetch notifications error:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    const initRealtime = async () => {
+      if (api.initRealtime) {
+        await api.initRealtime();
+        unsub = api.subscribe("receive_notification", (notif) => {
+          // تجاهل الإشعارات المرسلة من نفس المستخدم
+          if (notif?.fromUser?._id === currentUserId) return;
+          setNotifications((prev) => [notif, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        });
       }
     };
 
     fetchNotifications();
+    initRealtime();
 
-    // 2️⃣ تهيئة Socket.io realtime
-    api.initRealtime().then(() => {
-      // 3️⃣ الاشتراك في أي إشعار جديد
-      const unsub = api.subscribe("receive_notification", (notif) => {
-        // تجاهل الإشعار لو صادر منّي
-        if (notif?.fromUser?._id && currentUserId && notif.fromUser._id === currentUserId) return;
-        setNotifications((prev) => [notif, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      });
-
-      return () => unsub(); // تنظيف الاشتراك عند unmount
-    });
+    return () => {
+      mounted = false;
+      if (unsub) unsub(); // تنظيف الاشتراك
+    };
   }, [currentUserId]);
 
+  // ✅ تعليم كل الإشعارات كمقروءة
   const markAllAsRead = async () => {
     const res = await api.notifications.markAllRead();
     if (res.ok) {
@@ -63,6 +76,7 @@ export default function NotificationBell() {
     }
   };
 
+  // ✅ عند الضغط على إشعار معين
   const handleNotificationClick = async (notif) => {
     if (!notif.read) {
       const res = await api.notifications.markRead(notif._id);
@@ -70,16 +84,13 @@ export default function NotificationBell() {
         setNotifications((prev) =>
           prev.map((n) => (n._id === notif._id ? { ...n, read: true } : n))
         );
-        setUnreadCount((prev) => prev - 1);
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
       }
     }
 
-    if (notif.chat) router.push(`/chats/${notif.chat}`);
-    else if (notif.post) router.push(`/posts/${notif.post}`);
-    else console.log("⚠️ Unknown notification type:", notif);
+    if (notif.chat) router.push(`/dashboard/chat/${notif.chat}`);
+    else if (notif.post) router.push(`/dashboard/posts/${notif.post}`);
   };
-
-  if (!hydrated) return null;
 
   return (
     <DropdownMenu>
@@ -93,6 +104,7 @@ export default function NotificationBell() {
           )}
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent className="w-80 mr-6">
         <DropdownMenuLabel className="flex justify-between items-center">
           Notifications
@@ -103,7 +115,10 @@ export default function NotificationBell() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {notifications.length > 0 ? (
+
+        {loading ? (
+          <DropdownMenuItem>Loading notifications...</DropdownMenuItem>
+        ) : notifications.length > 0 ? (
           notifications.map((notif) => (
             <DropdownMenuItem
               key={notif._id}
@@ -114,7 +129,9 @@ export default function NotificationBell() {
             >
               <Avatar>
                 <AvatarImage src={notif.fromUser?.profileImage || ""} />
-                <AvatarFallback>{notif.fromUser?.username?.[0] || "U"}</AvatarFallback>
+                <AvatarFallback>
+                  {notif.fromUser?.username?.[0] || "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="text-sm font-medium">{notif.message}</span>

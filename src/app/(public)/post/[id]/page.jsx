@@ -90,16 +90,16 @@ export default async function PostPage({ params }) {
             <p>{post.content}</p>
           </div>
 
-          {/* ❤️ Like Button */}
+          {/*  Like Button */}
           <div className="pt-4">
-            <LikeButton postId={id} initialLikes={post.likes || 0} />
+            <LikeButton  postId={id} initialLikes={post.likes || 0} totle={post.likes } />
           </div>
         </CardContent>
       </Card>
             </Suspense>
 
       {/* 💬 Comments Section */}
-      <CommentsSection postId={id} initialComments={post.comments || []} />
+      <CommentsSection postId={id} initialComments={post.comments || [] } />
     </article>
     </Suspense>
   );
