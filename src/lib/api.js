@@ -24,7 +24,7 @@ function getGuessedBase() {
   try {
     const { protocol, hostname, port } = window.location;
     // Heuristic: if running on 3000, try backend on 5000
-    const guessedPort = port === '3000' ? '5000' : port;
+    const guessedPort = port === '7000' ? '4000' : port;
     const origin = guessedPort ? `${protocol}//${hostname}:${guessedPort}` : `${protocol}//${hostname}`;
     return origin;
   } catch (_) {
@@ -73,6 +73,8 @@ const tokenStore = {
       console.warn('Unable to clear token from localStorage:', e);
     }
   },
+  exists: () => !!localStorage.getItem("token"),
+
 };
 
 // Convenience for getting Authorization header

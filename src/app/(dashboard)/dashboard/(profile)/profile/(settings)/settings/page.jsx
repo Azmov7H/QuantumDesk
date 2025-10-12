@@ -1,152 +1,189 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import api from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { toast } from "sonner";// لو عندك shadcn toast
+import { Loader2, Save } from "lucide-react";
+import api from "@/lib/api";
 
 export default function ProfileSettingsPage() {
   const [profile, setProfile] = useState(null);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("");
-  const [facebook, setFacebook] = useState("");
-  const [linkedin, setLinkedin] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [profileImage, setProfileImage] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Fetch profile on mount
+  // 🟢 تحميل بيانات المستخدم
   useEffect(() => {
-    const token = api.token.get();
-    if (!token) return;
-
-    api.auth.getProfile().then((res) => {
-      if (!res.ok) return;
-      const data = res.data;
-        setProfile(data);
-        setUsername(data.username || "");
-        setEmail(data.email || "");
-        setBio(data.bio || "");
-        setFacebook(data.social?.facebook || "");
-        setLinkedin(data.social?.linkedin || "");
-        setWhatsapp(data.social?.whatsapp || "");
-        setPreview(data.avatar?.url || null);
-    }).catch((err) => console.error(err));
+    const fetchProfile = async () => {
+      try {
+        const res = await api.auth.getProfile();
+        console.log("Fetched profile:", res);
+        if (res?.data) setProfile(res.data);
+      } catch (error) {
+        console.error("❌ فشل تحميل بيانات المستخدم:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
   }, []);
 
-  // Handle profile update
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const payload = { username, email, bio, facebook, linkedin, whatsapp };
-    if (profileImage) payload.avatarFile = profileImage;
-
+  // 🟡 حفظ التعديلات
+  const handleSave = async () => {
     try {
-      const res = await api.users.updateMe(payload);
-      setLoading(false);
-
-      if (res.ok) {
-        setProfile(res.data?.user || { ...profile, username, email, bio });
-        toast({ title: "Profile updated successfully!", variant: "success" });
-      } else {
-        toast({ title: "Update failed", description: res.error || "", variant: "destructive" });
+      setSaving(true);
+      setMessage("");
+      const res = await api.auth.update (profile);
+      if (res?.user) {
+        setProfile(res.user);
+        setMessage("✅ تم حفظ التغييرات بنجاح");
       }
-    } catch (err) {
-      setLoading(false);
-      toast({ title: "Network error", description: err.message, variant: "destructive" });
+    } catch (error) {
+      console.error("❌ فشل حفظ البيانات:", error);
+      setMessage("حدث خطأ أثناء الحفظ");
+    } finally {
+      setSaving(false);
     }
   };
 
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="animate-spin w-8 h-8 text-muted-foreground" />
+      </div>
+    );
+
+  if (!profile)
+    return (
+      <div className="text-center py-10 text-gray-500">
+        لم يتم العثور على بيانات المستخدم
+      </div>
+    );
+
   return (
-    <Card className="shadow-lg rounded-2xl max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">Profile Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleUpdate} className="space-y-6">
-          {/* Profile Image */}
+    <div className="max-w-3xl mx-auto py-10 px-4">
+      <Card className="shadow-md">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">إعدادات الحساب</CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* الصورة الشخصية */}
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16">
-              <AvatarImage src={preview || "/default-avatar.png"} />
-              <AvatarFallback>{username?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+              <AvatarImage src={profile.profileImage} alt={profile.username} />
+              <AvatarFallback>{profile.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  setProfileImage(file);
-                  setPreview(URL.createObjectURL(file));
-                }
-              }}
+              type="text"
+              placeholder="رابط الصورة الشخصية"
+              value={profile.profileImage || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, profileImage: e.target.value })
+              }
             />
           </div>
 
-          {/* Username */}
+          {/* اسم المستخدم */}
           <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-
-          {/* Bio */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Bio</label>
-            <Textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Write something about yourself..."
-            />
-          </div>
-
-          {/* Social Links */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Facebook</label>
-            <Input
-              type="url"
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              placeholder="https://facebook.com/username"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">LinkedIn</label>
-            <Input
-              type="url"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              placeholder="https://linkedin.com/in/username"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">WhatsApp</label>
+            <label className="text-sm text-muted-foreground">اسم المستخدم</label>
             <Input
               type="text"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="+201234567890"
+              value={profile.username || ""}
+              onChange={(e) => setProfile({ ...profile, username: e.target.value })}
             />
           </div>
 
-          {/* Save Button */}
-          <Button type="submit" disabled={loading} className="w-full rounded-xl">
-            {loading ? "Updating..." : "Save Changes"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+          {/* البريد الإلكتروني */}
+          <div>
+            <label className="text-sm text-muted-foreground">البريد الإلكتروني</label>
+            <Input
+              type="email"
+              value={profile.email || ""}
+              onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+            />
+          </div>
+
+          {/* النبذة */}
+          <div>
+            <label className="text-sm text-muted-foreground">نبذة شخصية</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              rows={3}
+              placeholder="اكتب نبذة قصيرة عنك..."
+              value={profile.bio || ""}
+              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+            ></textarea>
+          </div>
+
+          {/* الروابط الاجتماعية */}
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground font-medium">
+              الروابط الاجتماعية
+            </label>
+
+            <Input
+              type="text"
+              placeholder="رابط فيسبوك"
+              value={profile.socialLinks?.facebook || ""}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  socialLinks: { ...profile.socialLinks, facebook: e.target.value },
+                })
+              }
+            />
+            <Input
+              type="text"
+              placeholder="رابط لينكدإن"
+              value={profile.socialLinks?.linkedin || ""}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  socialLinks: { ...profile.socialLinks, linkedin: e.target.value },
+                })
+              }
+            />
+            <Input
+              type="text"
+              placeholder="رقم واتساب"
+              value={profile.socialLinks?.whatsapp || ""}
+              onChange={(e) =>
+                setProfile({
+                  ...profile,
+                  socialLinks: { ...profile.socialLinks, whatsapp: e.target.value },
+                })
+              }
+            />
+          </div>
+
+          {/* زر الحفظ */}
+          <div className="flex justify-end items-center gap-3">
+            {message && (
+              <span
+                className={`text-sm ${
+                  message.includes("خطأ") ? "text-red-500" : "text-green-600"
+                }`}
+              >
+                {message}
+              </span>
+            )}
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" /> حفظ التغييرات
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

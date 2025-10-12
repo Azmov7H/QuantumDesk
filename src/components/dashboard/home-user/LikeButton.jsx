@@ -6,7 +6,7 @@ import { AiTwotoneLike } from "react-icons/ai";
 import api from "@/lib/api";
 import { useDashboard } from "@/context/DashboardContext";
 
-export default function LikeButton({ postId, initialLikes = 0 }) {
+export default function LikeButton({ postId, initialLikes = 0 , totle}) {
   const [likes, setLikes] = useState(initialLikes);
   const [optimistic, setOptimistic] = useState(false);
   const { currentUserId } = useDashboard?.() || {};
@@ -59,6 +59,7 @@ export default function LikeButton({ postId, initialLikes = 0 }) {
       console.error("Like error:", err);
     }
   };
+  
 
   return (
     <Button
@@ -69,7 +70,7 @@ export default function LikeButton({ postId, initialLikes = 0 }) {
       disabled={optimistic}
     >
       <AiTwotoneLike />
-      Like {likes > 0 && <span>({likes})</span>}
+      Like {totle ? `(${totle})` : likes > 0 ? `(${likes})` : ""}
     </Button>
   );
 }
