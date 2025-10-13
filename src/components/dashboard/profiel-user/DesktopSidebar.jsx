@@ -2,17 +2,18 @@
 
 // DesktopSidebar.js
 import Link from "next/link";
-import { Home, FileText, Plus, MessageCircle, User, Settings } from "lucide-react";
+import { Home, FileText, User, Settings ,MoveLeft } from "lucide-react";
 import LogoutButton from "@/components/LogoutButton";
 
 export default function DesktopSidebar() {
   const menuItems = [
-    { label: "Home", icon: Home, path: "/dashboard/profile" },
+    { label: "/", icon: Home, path: "/dashboard/profile" },
     { label: "My Posts", icon: FileText, path: "/dashboard/profile/Myposts" },
    // { label: "New Post", icon: Plus, path: "/dashboard/profile/newposts" },
    // { label: "Chat", icon: MessageCircle, path: "/dashboard/profile/chat" },
     { label: "Profile", icon: User, path: "/dashboard/profile" },
     { label: "Settings", icon: Settings, path: "/dashboard/profile/settings" },
+    { label: "Back", icon: MoveLeft , path: "/dashboard/" },
   ];
 
   return (

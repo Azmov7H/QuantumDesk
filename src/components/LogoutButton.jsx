@@ -10,9 +10,9 @@ export default function LogoutButton() {
 
   const handleLogout = () => {
     try {
-      api.token.clear(); // 🧹 مسح التوكن
-      toast.success("You have been logged out successfully"); // ✅ إشعار
-      setTimeout(() => router.push("/dashboard"), 1000); // 🔁 توجيه بعد ثانية
+      api.token.clear(); // clear token from storage
+      toast.success("You have been logged out successfully"); 
+      setTimeout(() => router.push("/dashboard"), 1000); 
     } catch (err) {
       console.error("Logout failed:", err);
       toast.error("Logout failed, please try again");
@@ -23,7 +23,7 @@ export default function LogoutButton() {
     <Button
       onClick={handleLogout}
       variant="ghost"
-      className="w-full sm:w-auto cursor-pointer"
+      className="w-full text-red  sm:w-auto cursor-pointer"
     >
       Log Out
     </Button>

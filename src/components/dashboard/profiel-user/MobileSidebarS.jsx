@@ -30,6 +30,7 @@ export default function MobileSidebars({ menuItems }) {
                 >
                   {item.label}
                 </Link>
+                
               </SheetClose>
             ))}
           </div>

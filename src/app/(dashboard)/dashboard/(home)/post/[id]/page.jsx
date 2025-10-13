@@ -92,7 +92,7 @@ export default async function PostPage({ params }) {
 
           {/* ❤️ Like Button */}
           <div className="pt-4">
-            <LikeButton postId={id} initialLikes={post.likes || 0} />
+            <LikeButton postId={id} />
           </div>
         </CardContent>
       </Card>

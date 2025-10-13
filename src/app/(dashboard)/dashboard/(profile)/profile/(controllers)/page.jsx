@@ -17,7 +17,7 @@ export default function DashboardPage() {
   ];
 
   useEffect(() => {
-    api.auth.getProfile()
+    api.auth.profile()
       .then((res) => {
         if (res.ok) setProfile(res.data);
         else if (res.status === 401 || res.status === 403) localStorage.removeItem("token");

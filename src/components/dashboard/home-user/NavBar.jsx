@@ -27,7 +27,7 @@ export default function Navbar() {
 
     const fetchProfile = async () => {
       try {
-        const res = await api.auth.getProfile();
+        const res = await api.auth.profile();
         if (!res.ok) {
           localStorage.removeItem("token");
           if (mounted) setProfile(GUEST_PROFILE);

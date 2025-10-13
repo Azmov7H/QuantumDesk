@@ -25,7 +25,7 @@ export default function DashboardHome() {
       if (!token) setProfile({ username: "Anonymous", _id: "guest" });
       else {
         try {
-          const res = await api.auth.getProfile();
+          const res = await api.auth.profile();
           setProfile(res.ok ? res.data : { username: "Anonymous", _id: "guest" });
         } catch {
           setProfile({ username: "Anonymous", _id: "guest" });
