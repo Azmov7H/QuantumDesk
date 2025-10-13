@@ -31,6 +31,7 @@ export default function LoginPage() {
     try {
       // يستخدم auth module من api.js
       const res = await api.auth.login(email, password)
+      console.log("Login response:", res)
 
       if (!res.ok || !res.data?.token) {
         throw new Error(res.error || "Login failed")

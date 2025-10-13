@@ -10,6 +10,7 @@ export default function SettingsLayout({ children }) {
     { label: "Security", path: "/dashboard/profile/settings/security" },
     { label: "Preferences", path: "/dashboard/profile/settings/preferences" },
     { label: "Notifications", path: "/dashboard/profile/settings/notifications" },
+    { label: "Home", path: "/dashboard" },
   ];
 
   return (

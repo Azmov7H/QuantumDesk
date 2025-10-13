@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Menu, Home, FileText, Plus, MessageCircle, User, Settings } from "lucide-react";
+import { Menu, Home, FileText, MoveLeft, User, Settings } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function MobileSidebar() {
   const menuItems = [
-    { label: "Home", icon: Home, path: "/dashboard/profile" },
+    { label: "/", icon: Home, path: "/dashboard/profile" },
     { label: "My Posts", icon: FileText, path: "/dashboard/profile/Myposts" },
    // { label: "New Post", icon: Plus, path: "/dashboard/profile/newposts" },
    // { label: "Chat", icon: MessageCircle, path: "/dashboard/profile/chat" },
     { label: "Profile", icon: User, path: "/dashboard/profile" },
     { label: "Settings", icon: Settings, path: "/dashboard/profile/settings" },
+    { label: "Back", icon: MoveLeft, path: "/dashboard/profile/" },
   ];
 
   return (

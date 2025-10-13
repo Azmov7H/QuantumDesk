@@ -30,6 +30,7 @@ export default function NotificationBell() {
     const fetchNotifications = async () => {
       try {
         const res = await api.notifications.list();
+        
         if (res.ok && Array.isArray(res.data)) {
           if (!mounted) return;
           setNotifications(res.data);
@@ -88,8 +89,8 @@ export default function NotificationBell() {
       }
     }
 
-    if (notif.chat) router.push(`/dashboard/chat/${notif.chat}`);
-    else if (notif.post) router.push(`/dashboard/posts/${notif.post}`);
+    if (notif.chat) router.push(`/dashboard/chat/${notif.chat._id}`);
+    else if (notif.post) router.push(`/dashboard/post/${notif.post._id}`);
   };
 
   return (

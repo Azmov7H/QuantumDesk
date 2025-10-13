@@ -38,7 +38,7 @@ export default function PostCard({ post, profile, commentUsers, setCommentUsers 
         <Button className="mb-2 w-max" variant="secondary" onClick={() => setCommentsVisible(prev => !prev)}>
           {commentsVisible ? "Hide Comments" : `Show Comments (${post.comments?.length || 0})`}
         </Button>
-        <LikeButton postId={post._id} initialLikes={post.likes || 0} />
+        <LikeButton postId={post._id} />
 
 
       </div>

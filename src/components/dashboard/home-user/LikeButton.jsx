@@ -6,10 +6,11 @@ import { AiTwotoneLike } from "react-icons/ai";
 import api from "@/lib/api";
 import { useDashboard } from "@/context/DashboardContext";
 
-export default function LikeButton({ postId, initialLikes = 0 , totle}) {
-  const [likes, setLikes] = useState(initialLikes);
+export default function LikeButton({ postId}) {
+  const [likes, setLikes] = useState(0);
   const [optimistic, setOptimistic] = useState(false);
   const { currentUserId } = useDashboard?.() || {};
+  const [totleLikes, setTotleLikes] = useState(0);
 
   // -----------------------------
   // WebSocket subscription
@@ -28,6 +29,7 @@ export default function LikeButton({ postId, initialLikes = 0 , totle}) {
     };
 
     setup();
+    gettotle();
 
     return () => unsub?.();
   }, [postId]);
@@ -35,30 +37,34 @@ export default function LikeButton({ postId, initialLikes = 0 , totle}) {
   // -----------------------------
   // Handle like click with optimistic UI
   // -----------------------------
-  const handleLike = async () => {
-    if (optimistic) return; // prevent double click while pending
-
-    setLikes((l) => l + 1); // optimistic increment
-    setOptimistic(true);
-
-    try {
-      const res = await api.posts.likePost(postId);
-      if (!res.ok) {
-        // rollback if server rejects
-        setLikes((l) => l - 1);
-        setOptimistic(false);
-        console.error("Like failed:", res.error);
-      } else if (currentUserId) {
-        // بثّ اختياري لو السيرفر لا يبث
-        try { api.emit("postLiked", { postId, likes: likes + 1, by: currentUserId }); } catch {}
-      }
-    } catch (err) {
-      // rollback on network/socket error
-      setLikes((l) => l - 1);
-      setOptimistic(false);
-      console.error("Like error:", err);
+const handleLike = async () => {
+  try {
+    const res = await api.like.toggle(postId);
+    if (res.ok) {
+      setTotleLikes((prev) => prev + 1);
+      setOptimistic(true);
+    } else {
+      console.error("Failed to toggle like:", res.error);
     }
-  };
+  } catch (err) {
+    console.error("Failed to toggle like:", err);
+  }
+};
+
+const gettotle = async () => {
+  try {
+    const res = await api.like.getLikes(postId);
+
+    if (res.ok) {
+      setTotleLikes(res.data || 0);
+    } else {
+      console.error("Failed to fetch likes:", res.error);
+    }
+  } catch (err) {
+    console.error("Failed to fetch likes:", err);
+  }
+};
+
   
 
   return (
@@ -70,7 +76,7 @@ export default function LikeButton({ postId, initialLikes = 0 , totle}) {
       disabled={optimistic}
     >
       <AiTwotoneLike />
-      Like {totle ? `(${totle})` : likes > 0 ? `(${likes})` : ""}
+      Like {totleLikes}
     </Button>
   );
 }

@@ -31,7 +31,7 @@ export default function ChatPage() {
         router.push("/auth/login");
         return;
       }
-      const res = await api.auth.getProfile();
+      const res = await api.auth.profile();
       if (res.ok) setMe(res.data);
     })();
   }, [router]);
