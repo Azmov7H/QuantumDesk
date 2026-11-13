@@ -1,187 +1,116 @@
-## QuantumDesk Backend (Node/Express)
+# QuantumLeap — Frontend (`QuantumDesk`)
 
-Backend API for QuantumDesk social features: authentication, posts, comments, chats/messages, notifications, and user profiles with real-time updates via Socket.io and media uploads via Cloudinary.
+Next.js 15 (App Router) client for **QuantumLeap**, the scientific publishing and collaboration platform: landing page, auth, posts with comments, dashboard, chat, notifications, user directory, and settings.
 
-### How to run locally
-1) Copy `.env.example` to `.env` and fill values.
-2) Install deps: `npm install`
-3) Start dev server: `npm start`
+> **Product name:** the canonical name is **QuantumLeap**. This folder is still called `QuantumDesk` and the package is still named `quantum-relativity`; both are legacy names scheduled for migration in `TASK-06-01`. Do not introduce a third name.
 
-Server listens on `PORT` (default 5000). CORS is restricted to `FRONTEND_URL`.
+The API lives in the sibling repository **`be-quantumLeap`** (separate repo, separate deployable). This frontend only documents itself; see [the backend README](../be-quantumLeap/README.md) for the server.
 
-### Tech
-- Express, Mongoose, JWT, Multer + Cloudinary, Socket.io, Helmet, CORS, Morgan
+Planning documents for the whole remediation live in [`../tasks/`](../tasks/README.md) — start with the [audit report](../tasks/AUDIT-REPORT.md).
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js `^15.3.3`, App Router, Turbopack dev server |
+| UI | React `^19.0.0`, Tailwind CSS `^4`, shadcn/ui (New York style, neutral), lucide-react icons |
+| Motion / 3D | framer-motion, `@react-three/fiber` + `@react-three/drei` + three |
+| Data | Hand-rolled fetch client in `src/lib/api.js` (TanStack Query is planned in `TASK-07-03`) |
+| Realtime | `socket.io-client` (`src/lib/api.js`, `src/lib/socket.js`) |
+| i18n | i18next + react-i18next |
+| Auth token | JWT in `localStorage` under the key `token` (`jwt-decode` for claims) |
+
+## Requirements
+
+- Node.js **20, 22, or 24** (verified in [BASELINE-VERIFICATION.md](../tasks/BASELINE-VERIFICATION.md); CI currently also runs Node 18, which is EOL — see `TASK-13-01`)
+- npm (the committed lockfile is `package-lock.json`; an untracked `pnpm-lock.yaml` also exists — package-manager decision in `TASK-01-03`)
+- A running `be-quantumLeap` instance, defaulting to `http://localhost:7000`
+
+## Getting started
+
+```bash
+cp .env.example .env      # then edit the values
+npm ci                    # clean install from package-lock.json
+npm run dev               # http://localhost:3000
+```
+
+Production check:
+
+```bash
+npm run build
+npm start
+```
+
+## Scripts
+
+| Script | Command | Notes |
+|---|---|---|
+| `npm run dev` | `next dev --turbopack` | Dev server on port 3000 |
+| `npm run build` | `next build` | Verified passing; logs a non-fatal `sitemap.xml` error when the API base is unset (see below) |
+| `npm start` | `next start` | Serves the production build |
+| `npm run lint` | `next lint` | ESLint via `eslint-config-next` |
+| `npm test` | `echo "No tests specified" && exit 0` | Placeholder — no tests exist yet (`TASK-12-02`) |
 
 ## Environment variables
-Create a `.env` with the following keys:
+
+Copy [`.env.example`](.env.example) to `.env`. All variables are `NEXT_PUBLIC_*`, so their **values are shipped to the browser** — never put secrets in them.
+
+| Variable | Read by | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_API_BASE` | `src/lib/api.js`, `src/components/PostForm.jsx` | **Canonical** API base URL, no trailing slash (e.g. `http://localhost:7000`) |
+| `NEXT_PUBLIC_BE_API_URL` | `src/app/sitemap.js` | Legacy alias — set it to the same value |
+| `NEXT_PUBLIC_BASE_URL` | `src/lib/socket.js` | Legacy alias — set it to the same value |
+
+The three names are a known inconsistency: the code keeps working only if all three hold the same value. Unifying them on `NEXT_PUBLIC_API_BASE` is `TASK-07-02`; this task documents the contract but does not rename anything.
+
+**Known symptom if unset:** `npm run build` exits 0 but logs `Error: Dynamic server usage: Route /sitemap.xml couldn't be rendered statically…` because `NEXT_PUBLIC_BE_API_URL` is undefined (recorded in [BASELINE-VERIFICATION.md](../tasks/BASELINE-VERIFICATION.md), mapped to `TASK-01-02`/`TASK-09-02`).
+
+## Project structure
 
 ```
-PORT=5000
-MONGODB_URI=mongodb+srv://...
-JWT_SECRET=your-strong-secret
-FRONTEND_URL=http://localhost:3000
-
-CLOUDINARY_CLOUD_NAME=xxxx
-CLOUDINARY_API_KEY=xxxx
-CLOUDINARY_API_SECRET=xxxx
+QuantumDesk/
+├── src/
+│   ├── app/
+│   │   ├── (public)/            # marketing, auth, public posts
+│   │   │   ├── page.jsx         # landing page
+│   │   │   ├── auth/            # login, registration
+│   │   │   └── post/            # post list + [id] detail
+│   │   ├── (dashboard)/dashboard/
+│   │   │   └── (home)/          # home, chat, newposts, post, users, profile
+│   │   ├── layout.jsx           # root layout, metadata (siteName: QuantumLeap)
+│   │   ├── globals.css          # Tailwind 4 + design tokens
+│   │   └── sitemap.js
+│   ├── components/
+│   │   ├── ui/                  # shadcn/ui primitives
+│   │   ├── landing/             # Hero, Footer, Logo, …
+│   │   ├── dashboard/, settings/, notifications/
+│   │   └── PostForm.jsx
+│   ├── context/                 # DashboardContext (session + realtime state)
+│   ├── hooks/
+│   └── lib/                     # api.js (fetch + socket client), socket.js, utils
+├── public/                      # static assets
+├── jsconfig.json                # `@/*` → `./src/*`
+├── tsconfig.json                # allowJs; TypeScript migration in TASK-07-01
+├── components.json              # shadcn/ui config
+└── next.config.mjs              # images.domains: res.cloudinary.com, images.unsplash.com
 ```
 
-Notes:
-- `MONGODB_URI` is required by `config/db.js`.
-- `JWT_SECRET` is required by `middlewares/auth.js` and auth controllers.
-- `FRONTEND_URL` is used by CORS in `server.js` and by Socket.io in `socket.js`.
-- Cloudinary vars are required for file uploads.
+## Talking to the backend
 
-## Installation / Scripts
+- REST calls go through `src/lib/api.js` → `safeFetch(path)`, which prefixes `NEXT_PUBLIC_API_BASE`, attaches `Authorization: Bearer <token>`, retries 502/503/504, and redirects to `/auth/login` on 401.
+- Socket.IO connects with `auth: { token }` on path `/socket.io`.
+- The backend defaults to **port 7000** and restricts CORS/Socket.IO origins to its `FRONTEND_URL`.
 
-```
-npm install
-npm start
-npm test        # placeholder (no tests configured)
-```
+## Known limitations
 
-package.json highlights:
-- main: `server.js`
-- scripts:
-  - `start`: `nodemon server.js`
+- **No tests.** `npm test` is a placeholder (`TASK-12-02`).
+- **Undeclared dependency:** `@radix-ui/react-visually-hidden` is imported by `MobileSidebar.jsx`/`MobileSidebarS.jsx` but is missing from `package.json`; npm's flat tree supplies it transitively (`TASK-01-03`, `TASK-10-02`).
+- **Three API-base env names** instead of one (`TASK-07-02`).
+- **Legacy product names** in folder/package names and in post-detail metadata (`QuantumDesk`, `quantum-relativity`) — `TASK-06-01`.
+- **API contract drift:** several client calls target endpoints/methods the backend does not implement (registration field, comments, chat detail, avatar, notification read, settings). Inventory in [`../tasks/API-CONTRACT-INVENTORY.md`](../tasks/API-CONTRACT-INVENTORY.md); fixes in Phases 02 and 08.
+- **CI** (`.github/workflows/node.js.yml`) runs Node 18/20/22 and executes no lint step (`TASK-13-01`).
 
-## Authorization
-- Protected routes require `Authorization: Bearer <JWT>` header.
-- Admin-only routes additionally check `req.user.role === "admin"`.
+## Related documentation
 
-## Routes
-
-### Auth
-- POST `/api/auth/register` (public)
-  - Body: `{ username: string, email: string, password: string }`
-  - 201: `{ msg, user, token }`
-  - 400/409/500 on errors
-  - cURL:
-    ```bash
-    curl -X POST http://localhost:5000/api/auth/register \
-      -H "Content-Type: application/json" \
-      -d '{"username":"alice","email":"a@x.com","password":"pass"}'
-    ```
-
-- POST `/api/auth/login` (public)
-  - Body: `{ email: string, password: string }`
-  - 200: `{ token, user }`
-
-- GET `/api/auth/me` (requires JWT)
-  - 200: user object sans password
-
-- PUT `/api/auth/update` (requires JWT, multipart)
-  - Fields: `username?`, `email?`, `password?`, `bio?`, `facebook?`, `linkedin?`, `whatsapp?`
-  - File: `profileImage` (image)
-  - 200: `{ msg: "Profile updated", user }`
-
-### Posts
-- GET `/api/posts` (public)
-  - 200: approved posts list
-
-- GET `/api/posts/:id` (public)
-  - Path: `id` (ObjectId)
-  - 200: post | 404
-
-- POST `/api/posts` (requires JWT, multipart)
-  - Body: `{ title: string, summary: string, content: string }`
-  - File: `image` (image)
-  - 201: created post
-
-- PUT `/api/posts/:id` (requires JWT, multipart)
-  - Owner or admin
-  - Fields: `title?`, `summary?`, `content?`
-  - File: `image` (image)
-  - 200: updated post
-
-- DELETE `/api/posts/:id` (requires JWT)
-  - Owner or admin
-  - 200 `{ msg: "Post deleted" }`
-
-- PUT `/api/posts/:id/like` (requires JWT)
-  - 200: updated likes array
-
-- POST `/api/posts/:id/comment` (requires JWT)
-  - Body: `{ text: string }`
-  - 201: populated comment
-
-- GET `/api/posts/:id/comments` (public)
-  - 200: post comments
-
-### Chats
-- POST `/api/chats` (requires JWT)
-  - Body: `{ userId: string }`
-  - 200: chat document (created or existing)
-
-- GET `/api/chats` (requires JWT)
-  - 200: simplified chat list `{ _id, user, lastMessage, updatedAt }[]`
-
-### Messages
-- GET `/api/messages/:chatId` (requires JWT)
-  - 200: messages array
-
-- POST `/api/messages/:chatId` (requires JWT, multipart allowed)
-  - Body: `{ content?: string }`
-  - File: `media` (image)
-  - 201: created message (populated)
-
-### Notifications
-- GET `/api/notifications` (requires JWT)
-  - 200: notifications for current user
-
-- PUT `/api/notifications/read` (requires JWT)
-  - 200: `{ msg: "All notifications marked as read" }`
-
-### Users
-- GET `/api/users/me` (requires JWT)
-  - 200: current user
-
-- PUT `/api/users/me` (requires JWT, multipart)
-  - File: `avatar` (image)
-  - Fields: `username?`, `email?`, `bio?`, `facebook?`, `linkedin?`, `whatsapp?`
-  - 200: `{ msg, user }`
-
-- GET `/api/users/:id` (public)
-  - 200: user sans password | 404
-
-- POST `/api/users/:id/follow` (requires JWT)
-  - 200: `{ msg: "Followed", followersCount }`
-
-- POST `/api/users/:id/unfollow` (requires JWT)
-  - 200: `{ msg: "Unfollowed", followersCount }`
-
-### Moderation (route file exists; controller missing)
-- GET `/api/moderation/pending` (requires JWT + admin)
-- PUT `/api/moderation/approve/:id` (requires JWT + admin)
-- PUT `/api/moderation/reject/:id` (requires JWT + admin)
-
-Note: `controllers/moderationController.js` is missing. These endpoints will 404 until implemented and mounted in `server.js`.
-
-## Example cURL (auth + posts)
-```bash
-# Login
-TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"a@x.com","password":"pass"}' | jq -r .token)
-
-# Create post
-curl -X POST http://localhost:5000/api/posts \
-  -H "Authorization: Bearer $TOKEN" \
-  -F title="Hello" -F summary="Sum" -F content="Body" \
-  -F image=@/path/to/image.jpg
-```
-
-## Known issues & TODO
-- Server start failed with EADDRINUSE on port 5000. Free the port or change `PORT`.
-- `routes/moderationRoutes.js` references a missing `controllers/moderationController.js`.
-- `server.js` does not mount `moderationRoutes`.
-- No lint/test scripts configured; `npm test` is placeholder.
-
-## Commits & Branching
-- Branch: `feature/docs-routes` for docs; `fix/<short-desc>` for fixes.
-- Conventional commits recommended: `type(scope): short description`
-  - Examples:
-    - `docs(readme): add full API route specs`
-    - `fix(server): avoid EADDRINUSE by honoring PORT env`
-    - `feat(moderation): implement pending/approve/reject endpoints`
-
+- [Tasks index](../tasks/README.md) · [Audit report](../tasks/AUDIT-REPORT.md) · [Architecture](../tasks/ARCHITECTURE.md) · [Design system](../tasks/DESIGN-SYSTEM.md) · [Roadmap](../tasks/IMPLEMENTATION-ROADMAP.md)
+- [Backend README](../be-quantumLeap/README.md)
