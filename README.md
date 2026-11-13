@@ -14,10 +14,10 @@ Planning documents for the whole remediation live in [`../tasks/`](../tasks/READ
 |---|---|
 | Framework | Next.js `^15.3.3`, App Router, Turbopack dev server |
 | UI | React `^19.0.0`, Tailwind CSS `^4`, shadcn/ui (New York style, neutral), lucide-react icons |
-| Motion / 3D | framer-motion, `@react-three/fiber` + `@react-three/drei` + three |
+| Motion | framer-motion (3D `@react-three/*` + `three` removed as unused in `TASK-01-03`) |
 | Data | Hand-rolled fetch client in `src/lib/api.js` (TanStack Query is planned in `TASK-07-03`) |
 | Realtime | `socket.io-client` (`src/lib/api.js`, `src/lib/socket.js`) |
-| i18n | i18next + react-i18next |
+| Icons | lucide-react (canonical) + `react-icons` (legacy, removal owned by `TASK-06-03`) |
 | Auth token | JWT in `localStorage` under the key `token` (`jwt-decode` for claims) |
 
 ## Requirements
@@ -104,7 +104,6 @@ QuantumDesk/
 ## Known limitations
 
 - **No tests.** `npm test` is a placeholder (`TASK-12-02`).
-- **Undeclared dependency:** `@radix-ui/react-visually-hidden` is imported by `MobileSidebar.jsx`/`MobileSidebarS.jsx` but is missing from `package.json`; npm's flat tree supplies it transitively (`TASK-01-03`, `TASK-10-02`).
 - **Three API-base env names** instead of one (`TASK-07-02`).
 - **Legacy product names** in folder/package names and in post-detail metadata (`QuantumDesk`, `quantum-relativity`) — `TASK-06-01`.
 - **API contract drift:** several client calls target endpoints/methods the backend does not implement (registration field, comments, chat detail, avatar, notification read, settings). Inventory in [`../tasks/API-CONTRACT-INVENTORY.md`](../tasks/API-CONTRACT-INVENTORY.md); fixes in Phases 02 and 08.
