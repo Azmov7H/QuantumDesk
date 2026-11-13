@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export default function MobileSidebars({ menuItems }) {
   return (
@@ -17,9 +16,7 @@ export default function MobileSidebars({ menuItems }) {
         </SheetTrigger>
 
         <SheetContent side="left" className="w-64 bg-[#101a23] p-6 h-full shadow-xl">
-          <SheetTitle>
-            <VisuallyHidden>Menu</VisuallyHidden>
-          </SheetTitle>
+          <SheetTitle className="sr-only">Menu</SheetTitle>
 
           <div className="flex flex-col gap-4 mt-6">
             {menuItems.map((item) => (
